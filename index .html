@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教學版橋牌 Bridge v3.1 Stable</title>
+<style>
+:root{
+  --bg:#0c1220;--panel:rgba(22,31,47,.94);--table:#116043;--table2:#073b2b;
+  --text:#f5f8ff;--muted:#aeb9cc;--gold:#ffd166;--red:#e74c3c;--blue:#69a7ff;--ok:#7dffb0;
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:"Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;color:var(--text);
+background:radial-gradient(circle at top,rgba(100,170,255,.16),transparent 38rem),linear-gradient(135deg,#08101c,#162238 55%,#071018);padding:16px}
+.app{width:min(1660px,100%);margin:auto;display:grid;grid-template-columns:minmax(1040px,1fr) 360px;gap:18px}
+.table{position:relative;min-height:930px;border-radius:34px;background:radial-gradient(circle at center,rgba(255,255,255,.08),transparent 44%),linear-gradient(135deg,var(--table),var(--table2));
+border:8px solid #5a391d;box-shadow:0 28px 80px rgba(0,0,0,.45),inset 0 0 40px rgba(0,0,0,.32);overflow:hidden}
+.side{background:var(--panel);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:18px;box-shadow:0 22px 70px rgba(0,0,0,.35)}
+h1{margin:0 0 8px;font-size:26px}.sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.help{position:fixed;right:18px;top:18px;z-index:10}
+.help-btn{width:42px;height:42px;border-radius:50%;background:var(--gold);color:#111;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:help}
+.help-box{display:none;position:absolute;right:0;top:50px;width:390px;max-width:calc(100vw - 28px);background:#111a29;border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:16px;text-align:left;color:var(--text);box-shadow:0 18px 60px rgba(0,0,0,.55);font-size:13px;line-height:1.65}
+.help:hover .help-box{display:block}
+.help-box b{color:var(--gold)}
+.player-area{position:absolute;display:flex;flex-direction:column;align-items:center;gap:8px}
+.p0{left:50%;bottom:18px;transform:translateX(-50%);width:96%}
+.p2{left:50%;top:18px;transform:translateX(-50%);width:74%}
+.p1{left:24px;top:50%;transform:translateY(-50%);width:240px}
+.p3{right:24px;top:50%;transform:translateY(-50%);width:240px}
+.name{font-weight:900;background:rgba(0,0,0,.28);padding:8px 13px;border-radius:999px;font-size:15px}
+.turn .name{background:var(--gold);color:#211505}
+.role{font-size:12px;color:var(--gold);font-weight:900;margin-left:5px}
+.hand{display:flex;justify-content:center;align-items:center;min-height:115px}
+.p0 .hand,.p2 .hand{flex-wrap:wrap;gap:4px}
+.p1 .hand,.p3 .hand{flex-direction:column;min-height:310px}
+.card{width:66px;height:94px;border-radius:10px;background:#fff;color:#111;border:1px solid rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:6px 5px;font-weight:900;box-shadow:0 8px 14px rgba(0,0,0,.25);user-select:none;position:relative;margin-left:-10px;transition:.12s}
+.card:first-child{margin-left:0}.p0 .card{cursor:pointer}.p0 .card:hover{transform:translateY(-8px)}.p0 .card.selected{transform:translateY(-17px);outline:4px solid var(--gold)}
+.dummy .card{cursor:pointer}.dummy .card:hover{transform:translateY(-8px)}
+.back{background:linear-gradient(135deg,#263f76,#13223f);border:2px solid #d7e6ff;color:#d7e6ff;justify-content:center;font-size:22px}
+.redSuit{color:#d62828}.blackSuit{color:#111}.rank{font-size:26px}.suit{font-size:24px}
+.p1 .card,.p3 .card{margin-left:0;margin-top:-58px}.p1 .card:first-child,.p3 .card:first-child{margin-top:0}
+.trick-card{width:76px;height:108px}
+.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:560px;min-height:300px;background:rgba(0,0,0,.24);border:1px solid rgba(255,255,255,.15);border-radius:26px;padding:16px;text-align:center}
+.contract{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.info-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:9px;font-size:13px;color:var(--muted)}
+.info-card strong{display:block;color:var(--text);font-size:17px;margin-top:2px}
+.trick{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:8px;align-items:center;justify-items:center;min-height:180px}
+.seatN{grid-column:2;grid-row:1}.seatW{grid-column:1;grid-row:2}.seatE{grid-column:3;grid-row:2}.seatS{grid-column:2;grid-row:3}
+.play-slot{min-width:100px;min-height:118px;border-radius:15px;background:rgba(0,0,0,.2);border:1px dashed rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:12px;color:var(--muted)}
+.status{min-height:86px;background:rgba(0,0,0,.24);border-radius:16px;padding:13px;margin-bottom:12px;border:1px solid rgba(255,255,255,.09)}
+.main{font-weight:900;font-size:18px;margin-bottom:5px}.detail{font-size:13px;color:var(--muted);line-height:1.5}
+button,select{width:100%;border:0;border-radius:13px;padding:12px 13px;font-family:inherit;font-size:15px}select{background:rgba(0,0,0,.35);color:var(--text);border:1px solid rgba(255,255,255,.12)}
+button{margin-top:10px;background:linear-gradient(180deg,#ffd98c,#d49636);font-weight:900;color:#201406;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.26)}
+button.secondary{background:linear-gradient(180deg,#d8e4ff,#8aa7d8)}button:disabled{opacity:.45;cursor:not-allowed}
+.bid-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}.bid-grid button{padding:8px 5px;margin-top:0;font-size:13px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.log{height:170px;overflow:auto;background:rgba(0,0,0,.2);border-radius:14px;padding:10px;font-size:12px;line-height:1.55;color:#dce6f3}
+.bidlog{height:190px}.tips{margin-top:14px;padding:13px;border-radius:14px;background:rgba(255,255,255,.06);font-size:13px;color:var(--muted);line-height:1.65}
+.badge{display:inline-block;background:var(--gold);color:#15100a;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:900;margin-right:5px}
+.phase-bidding .table{box-shadow:0 28px 80px rgba(0,0,0,.45),inset 0 0 40px rgba(0,0,0,.32),0 0 0 3px rgba(255,209,102,.25)}
+
+.effect-pop{position:absolute;z-index:20;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 18px;border-radius:999px;font-size:30px;font-weight:900;letter-spacing:.08em;pointer-events:none;animation:popfade 1.15s ease-out forwards;text-shadow:0 4px 16px rgba(0,0,0,.55)}
+.effect-discard{background:rgba(105,167,255,.92);color:#06101f}
+.effect-trump{background:rgba(255,209,102,.96);color:#211505}
+.result-banner{margin-top:10px;padding:10px;border-radius:14px;font-weight:900;font-size:18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16)}
+.result-success{color:#7dffb0;border-color:rgba(125,255,176,.45);background:rgba(125,255,176,.1)}
+.result-fail{color:#ff9b9b;border-color:rgba(255,120,120,.45);background:rgba(255,120,120,.1)}
+@keyframes popfade{0%{opacity:0;transform:translate(-50%,-35%) scale(.7)}18%{opacity:1;transform:translate(-50%,-55%) scale(1.08)}75%{opacity:1;transform:translate(-50%,-75%) scale(1)}100%{opacity:0;transform:translate(-50%,-110%) scale(.9)}}
+
+.bid-bubble{position:absolute;z-index:15;min-width:84px;padding:8px 12px;border-radius:16px;background:rgba(255,209,102,.95);color:#161008;font-weight:900;text-align:center;box-shadow:0 10px 28px rgba(0,0,0,.35);animation:bubbleFade 1.45s ease-out forwards;pointer-events:none}
+.bid-bubble.p0b{left:50%;bottom:178px;transform:translateX(-50%)}
+.bid-bubble.p2b{left:50%;top:136px;transform:translateX(-50%)}
+.bid-bubble.p1b{left:210px;top:50%;transform:translateY(-50%)}
+.bid-bubble.p3b{right:210px;top:50%;transform:translateY(-50%)}
+@keyframes bubbleFade{0%{opacity:0;scale:.82}15%{opacity:1;scale:1.05}75%{opacity:1;scale:1}100%{opacity:0;scale:.95}}
+.trick-label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;padding:7px 13px;border-radius:999px;font-size:22px;font-weight:900;letter-spacing:.06em;box-shadow:0 8px 20px rgba(0,0,0,.35)}
+.trick-label.discard{background:rgba(105,167,255,.92);color:#06101f}
+.trick-label.trump{background:rgba(255,209,102,.96);color:#211505}
+.big-score{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.score-box{border-radius:16px;padding:12px;background:rgba(0,0,0,.24);border:2px solid rgba(255,255,255,.12);font-weight:900}
+.score-box strong{font-size:30px;display:block}
+.score-ok{border-color:rgba(125,255,176,.75);box-shadow:0 0 22px rgba(125,255,176,.14)}
+.score-bad{border-color:rgba(255,120,120,.78);box-shadow:0 0 22px rgba(255,120,120,.13)}
+.trick-winner{margin-top:10px;padding:10px 12px;border-radius:14px;font-size:20px;font-weight:900;background:rgba(255,209,102,.16);border:1px solid rgba(255,209,102,.45);color:#ffe4a5}
+.p1 .hand,.p3 .hand{display:grid;grid-template-columns:repeat(3,56px);grid-auto-rows:76px;gap:5px;min-height:310px;align-items:start;justify-content:center}
+.p1 .card,.p3 .card{margin:0;width:56px;height:76px}
+.p1 .rank,.p3 .rank{font-size:20px}.p1 .suit,.p3 .suit{font-size:18px}
+
+.auction-table{width:100%;border-collapse:collapse;background:#a7d7d8;color:#111;border:3px solid #0a6018;font-weight:700}
+.auction-table th{background:#f2f2f2;color:#111;border:1px solid #9fb7b7;padding:5px;font-size:14px}
+.auction-table td{border:1px solid rgba(0,0,0,.18);padding:5px;text-align:center;font-size:19px;min-height:28px}
+.auction-table .empty{color:transparent}
+.auction-table .pass{color:#222;font-weight:500}
+.auction-table .bid{font-weight:900}
+.bidlog{background:#a7d7d8!important;padding:6px!important}
+
+.bid-grid button.illegal{opacity:.28;filter:grayscale(.7);cursor:not-allowed}
+
+.player-area.win-team .name{background:linear-gradient(180deg,#7dffb0,#1f9d55)!important;color:#07140b!important;box-shadow:0 0 24px rgba(125,255,176,.45)}
+.player-area.lose-team .name{background:linear-gradient(180deg,#ff9b9b,#b83232)!important;color:#fff!important;box-shadow:0 0 24px rgba(255,120,120,.36)}
+.player-area.win-team::before{content:"🏆 勝利方";position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:rgba(125,255,176,.95);color:#06200f;font-weight:900;padding:5px 12px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.player-area.lose-team::before{content:"敗方";position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:rgba(255,120,120,.95);color:#fff;font-weight:900;padding:5px 12px;border-radius:999px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+
+.victory-banner{margin-top:12px;padding:16px 18px;border-radius:18px;font-size:26px;font-weight:900;letter-spacing:.04em;text-align:center;border:2px solid rgba(255,209,102,.75);background:linear-gradient(180deg,rgba(255,209,102,.22),rgba(255,209,102,.08));color:#ffe4a5;box-shadow:0 0 34px rgba(255,209,102,.18)}
+.victory-banner.success{border-color:rgba(125,255,176,.75);background:linear-gradient(180deg,rgba(125,255,176,.2),rgba(125,255,176,.08));color:#9dffc1}
+.victory-banner.fail{border-color:rgba(255,120,120,.75);background:linear-gradient(180deg,rgba(255,120,120,.2),rgba(255,120,120,.08));color:#ffb4b4}
+.final-trick-note{margin-top:8px;color:var(--gold);font-weight:900;font-size:15px}
+
+.ai-db-panel{margin-top:14px;padding:12px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+.ai-db-panel h2{font-size:16px;margin:0 0 8px;color:var(--gold)}
+.ai-db-stats{font-size:12px;line-height:1.6;color:var(--muted);background:rgba(0,0,0,.22);border-radius:12px;padding:9px;margin-top:8px;white-space:pre-line}
+.ai-db-panel input[type=file]{display:none}
+.ai-db-panel .mini{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
+.ai-db-panel button{font-size:13px;padding:10px;margin-top:8px}
+.ai-db-panel .row3{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ai-db-panel .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ai-db-panel select,.ai-db-panel input[type=number]{font-size:13px;padding:9px 10px;margin-top:6px;background:rgba(0,0,0,.35);color:var(--text);border:1px solid rgba(255,255,255,.12);border-radius:12px;width:100%}
+.ai-db-panel .control-line{margin-top:8px}
+
+
+.dev-lock{position:fixed;right:70px;top:18px;z-index:11;width:42px;height:42px;border-radius:50%;padding:0;margin:0;background:linear-gradient(180deg,#d8e4ff,#8aa7d8);color:#111;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.dev-panel{display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14)}
+.dev-panel.active{display:block}
+.dev-note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
+@media(max-width:1000px){.app{grid-template-columns:1fr}.side{order:-1}.table{min-height:820px}.p1,.p3{display:none}.center{width:92%}.card{width:52px;height:74px}.rank{font-size:20px}.suit{font-size:18px}}
+</style>
+</head>
+<body>
+<button id="devModeBtn" class="dev-lock" title="開發者模式">🔒</button>
+<div class="help">
+  <div class="help-btn">?</div>
+  <div class="help-box">
+    <b>橋牌簡易規則</b><br>
+    1. 北(N)與南(S)一隊；東(E)與西(W)一隊。<br>
+    2. 發牌後先叫牌，決定莊家、王牌與目標墩數。<br>
+    3. Pass = 放棄叫牌；若四家都 Pass 則流局重發。<br>
+    4. 數字代表莊家方要贏幾墩，實際目標為 6+叫牌數。<br>
+    例如：1♥=7墩、2♠=8墩、3NT=9墩。<br>
+    5. 花色大小：♣ &lt; ♦ &lt; ♥ &lt; ♠ &lt; NT。<br>
+    已有人叫牌時，只能 Pass 或喊更大的合約。<br>
+    6. 最早叫出最終花色的人為 👑莊家。<br>
+    7. 莊家的隊友為 🎴夢家，夢家攤牌並由莊家控制出牌，因此橋牌有點像 1 打 2。<br>教學版中，若你是夢家，輪到南家時仍由你點牌幫莊家出牌。<br>
+    8. 莊家左手邊玩家為 ➜ 首引，負責打出第一張牌。<br>
+    9. 有首引花色就必須跟牌。<br>
+    10. 沒有首引花色時才能出任意花色。<br>
+    出非王牌稱為「墊牌」；出王牌稱為「王吃」。<br>
+    11. 每局共 13 墩。<br>
+    12. 莊家方達成目標墩數則合約成功，否則失敗。
+</div>
+</div>
+<div class="app" id="app">
+  <main class="table" id="tableBox">
+    <div id="bubbleLayer"></div>
+    <div class="player-area p2" id="area2"><div class="name">北 N <span id="role2" class="role"></span></div><div class="hand" id="hand2"></div></div>
+    <div class="player-area p1" id="area1"><div class="name">西 W <span id="role1" class="role"></span></div><div class="hand" id="hand1"></div></div>
+    <div class="player-area p3" id="area3"><div class="name">東 E <span id="role3" class="role"></span></div><div class="hand" id="hand3"></div></div>
+
+    <div class="center" id="centerBox">
+      <div class="contract">
+        <div class="info-card">合約<strong id="contractText">叫牌中</strong></div>
+        <div class="info-card">目標<strong id="targetText">尚未決定</strong></div>
+        <div class="info-card">莊家 / 夢家<strong id="declarerText">尚未決定</strong></div>
+        <div class="info-card">首引 / 王牌<strong id="leadText">尚未決定</strong></div>
+        <div class="info-card score-box">北南墩數<strong id="nsTricks">0</strong></div>
+        <div class="info-card score-box">東西墩數<strong id="ewTricks">0</strong></div>
+      </div>
+      <div id="resultBox"></div><div id="trickWinnerBox"></div>
+      <div id="effectLayer"></div><div class="trick">
+        <div class="play-slot seatN" id="slot2">北</div>
+        <div class="play-slot seatW" id="slot1">西</div>
+        <div class="play-slot seatE" id="slot3">東</div>
+        <div class="play-slot seatS" id="slot0">南</div>
+      </div>
+    </div>
+
+    <div class="player-area p0" id="area0"><div class="name">南 S（玩家）<span id="role0" class="role"></span></div><div class="hand" id="hand0"></div></div>
+  </main>
+  <aside class="side">
+    <h1>教學版橋牌 v3.1 Stable</h1>
+    <div class="sub">簡易叫牌 + 夢家 + 13墩。暫不計算正式分數、不做 Double / Redouble。</div>
+    <div class="status"><div class="main" id="statusMain">準備中</div><div class="detail" id="statusDetail">南家玩家，北家為隊友。</div></div>
+
+    <div id="biddingPanel">
+      <label>叫牌</label>
+      <button class="secondary" id="passBtn">Pass</button>
+      <div class="bid-grid" id="bidGrid"></div>
+    </div>
+
+    <button id="restart">重新開始</button>
+
+    <div class="ai-db-panel">
+      <h2>AI資料庫 v3</h2>
+      <div class="control-line">
+        <label>南家控制</label>
+        <select id="southModeSelect">
+          <option value="human">玩家操作</option>
+          <option value="ai">AI託管</option>
+        </select>
+      </div>
+      <button id="hostSouthBtn" class="secondary">🤖 AI託管本局</button>
+      <div class="row3">
+        <button class="secondary" id="exportDbBtn">匯出AI資料庫</button>
+        <button class="secondary" id="importDbBtn">匯入AI資料庫</button>
+      </div>
+      <input type="file" id="importDbFile" accept="application/json,.json">
+      <div class="ai-db-stats" id="autoTrainStatus">AI資料庫已啟用。</div>
+      <div class="mini">可匯入／匯出 AI 資料庫進行備份或分享。</div>
+
+      <div id="devPanel" class="dev-panel">
+        <h2>🛠 開發者模式</h2>
+        <button id="train4Btn">AI訓練四局（三局隱藏）</button>
+        <div class="ai-db-stats" id="aiDbStats">資料庫載入中...</div>
+        <button class="secondary" id="clearDbBtn">清空資料庫</button>
+        <div class="dev-note">開發者功能已解鎖：四局訓練、資料庫資訊、清空資料庫。</div>
+      </div>
+    </div>
+    <label>叫牌紀錄</label><div class="log bidlog" id="bidLog"></div>
+    <label>行動紀錄</label><div class="log" id="playLog"></div>
+  </aside>
+</div>
+
+<script>
+(()=>{
+const seats=['南','西','北','東']; // 0 S player, 1 W, 2 N, 3 E
+const teamOf=i=>(i===0||i===2)?'NS':'EW';
+const suits=['♣','♦','♥','♠']; const allStrains=['♣','♦','♥','♠','NT'];
+const suitOrder={'♣':0,'♦':1,'♥':2,'♠':3,'NT':4};
+const ranks=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const rankOrder=Object.fromEntries(ranks.map((r,i)=>[r,i]));
+let players=[],phase='bidding',dealer=0,bidTurn=0,bids=[],contract=null,declarer=null,dummy=null,leader=null,current=0,trick=[],tricks={NS:0,EW:0},selected=null,gameOver=false,thinking=false,openingLeadDone=false,resultText='',trickLabels={},labelTimers={},lastTrickWinnerText='',lastPlayerBidPromptKey='',winningTeam=null,lastCompletedTrick=[],lastCompletedWinner=null;
+let aiMemory=null;
+let aiDB=loadAIDB();
+let decisionTrace=[];
+let learningEnabled=true;
+let suppressAlerts=false;
+let trainingBusy=false;
+let autoTraining=false;
+let autoTrainingStop=false;
+let autoTrainingRounds=0;
+let autoTrainingGames=0;
+let autoTrainingWins={NS:0,EW:0};
+let playerAutoplay=localStorage.getItem("bridgeSouthMode")==="ai";
+let renderSuspended=false;
+let deferDBSave=false;
+
+const app=document.getElementById('app');
+const tableBox=document.getElementById('tableBox');
+const bubbleLayer=document.getElementById('bubbleLayer');
+const effectLayer=document.getElementById('effectLayer');
+const handEls=[0,1,2,3].map(i=>document.getElementById('hand'+i));
+const areaEls=[0,1,2,3].map(i=>document.getElementById('area'+i));
+const roleEls=[0,1,2,3].map(i=>document.getElementById('role'+i));
+const slotEls=[0,1,2,3].map(i=>document.getElementById('slot'+i));
+const statusMain=document.getElementById('statusMain'),statusDetail=document.getElementById('statusDetail');
+const bidLog=document.getElementById('bidLog'),playLog=document.getElementById('playLog');
+const contractText=document.getElementById('contractText'),targetText=document.getElementById('targetText'),declarerText=document.getElementById('declarerText'),leadText=document.getElementById('leadText'),nsTricks=document.getElementById('nsTricks'),ewTricks=document.getElementById('ewTricks'),resultBox=document.getElementById('resultBox'),trickWinnerBox=document.getElementById('trickWinnerBox');
+const biddingPanel=document.getElementById('biddingPanel'),bidGrid=document.getElementById('bidGrid'),passBtn=document.getElementById('passBtn');
+const train4Btn=document.getElementById('train4Btn'),autoTrainBtn=document.getElementById('autoTrainBtn'),stopAutoTrainBtn=document.getElementById('stopAutoTrainBtn'),autoTrainStatus=document.getElementById('autoTrainStatus'),exportDbBtn=document.getElementById('exportDbBtn'),importDbBtn=document.getElementById('importDbBtn'),clearDbBtn=document.getElementById('clearDbBtn'),importDbFile=document.getElementById('importDbFile'),aiDbStats=document.getElementById('aiDbStats');
+const southModeSelect=document.getElementById('southModeSelect'),hostSouthBtn=document.getElementById('hostSouthBtn');
+const devModeBtn=document.getElementById('devModeBtn'),devPanel=document.getElementById('devPanel');
+let developerMode=sessionStorage.getItem('bridgeDevMode')==='1';
+
+document.getElementById('restart').onclick=init;
+passBtn.onclick=()=>playerBid('Pass');
+train4Btn.onclick=()=>{ if(!trainingBusy&&!autoTraining) runTrainingBatch(4); };
+if(autoTrainBtn){autoTrainBtn.onclick=()=>{ if(!autoTraining) startAutoTraining(); };}
+if(stopAutoTrainBtn){stopAutoTrainBtn.onclick=stopAutoTraining;}
+if(southModeSelect){southModeSelect.value=playerAutoplay?'ai':'human';southModeSelect.onchange=()=>{playerAutoplay=southModeSelect.value==='ai';localStorage.setItem('bridgeSouthMode',playerAutoplay?'ai':'human');render();maybeAutoContinue();};}
+if(hostSouthBtn)hostSouthBtn.onclick=()=>{playerAutoplay=true;localStorage.setItem('bridgeSouthMode','ai');if(southModeSelect)southModeSelect.value='ai';addPlayLog('南家已切換為AI託管。');render();maybeAutoContinue();};
+exportDbBtn.onclick=exportAIDB;
+importDbBtn.onclick=()=>{ importDbFile.value=''; importDbFile.click(); };
+importDbFile.onchange=importAIDB;
+if(clearDbBtn)clearDbBtn.onclick=()=>{if(confirm('確定清空AI動態資料庫？')){aiDB=createEmptyAIDB();saveAIDB(true);updateAIDBStats();updateAutoTrainingStatus('AI資料庫已清空。');}};
+function setDeveloperMode(on){
+ developerMode=!!on;
+ sessionStorage.setItem('bridgeDevMode',developerMode?'1':'0');
+ if(devPanel)devPanel.classList.toggle('active',developerMode);
+ if(devModeBtn)devModeBtn.textContent=developerMode?'🔓':'🔒';
+ if(developerMode)updateAIDBStats();
+}
+if(devModeBtn)devModeBtn.onclick=()=>{
+ if(developerMode){setDeveloperMode(false);updateAutoTrainingStatus('已離開開發者模式。');return;}
+ const pwd=prompt('請輸入開發者密碼');
+ if(pwd==='6028'){setDeveloperMode(true);updateAutoTrainingStatus('已進入開發者模式。');}
+ else if(pwd!==null){updateAutoTrainingStatus('開發者密碼錯誤。');}
+};
+setDeveloperMode(developerMode);
+
+function makeDeck(){const d=[];for(const s of suits)for(const r of ranks)d.push({s,r,id:r+s});return d.sort(()=>Math.random()-.5)}
+
+function createTinyNNUE(){
+ return {
+  version:'bridge-ai-nnue-lite-v1',
+  dim:64,
+  lr:0.022,
+  trained:0,
+  weights:{bid:Array(64).fill(0),declarer:Array(64).fill(0),defense:Array(64).fill(0),dummy:Array(64).fill(0)},
+  bias:{bid:0,declarer:0,defense:0,dummy:0}
+ };
+}
+function hashNNUE(str){
+ let h=2166136261;
+ for(let i=0;i<str.length;i++){
+  h^=str.charCodeAt(i);
+  h=Math.imul(h,16777619);
+ }
+ return h>>>0;
+}
+function ensureTinyNNUE(db=aiDB){
+ if(!db)return null;
+ if(!db.nnue||typeof db.nnue!=='object')db.nnue=createTinyNNUE();
+ const base=createTinyNNUE();
+ db.nnue.version='bridge-ai-nnue-lite-v1';
+ db.nnue.dim=64; // 固定 64 維，避免匯入檔把 dim 寫成巨大數值導致 localStorage 爆掉。
+ db.nnue.lr=Number(db.nnue.lr||0.022)||0.022;
+ db.nnue.trained=Number(db.nnue.trained||0)||0;
+ db.nnue.weights=db.nnue.weights||{};
+ db.nnue.bias=db.nnue.bias||{};
+ for(const t of ['bid','declarer','defense','dummy']){
+  if(!Array.isArray(db.nnue.weights[t]))db.nnue.weights[t]=base.weights[t].slice();
+  db.nnue.weights[t]=db.nnue.weights[t].slice(0,db.nnue.dim).map(v=>Number(v)||0);
+  while(db.nnue.weights[t].length<db.nnue.dim)db.nnue.weights[t].push(0);
+  db.nnue.bias[t]=Number(db.nnue.bias[t]||0)||0;
+ }
+ return db.nnue;
+}
+function nnueFeatureIndexes(type,key,action){
+ const nn=ensureTinyNNUE(); if(!nn)return [];
+ const parts=String(key||'').split('|').filter(Boolean);
+ const feats=['TYPE:'+type,'ACTION:'+action,'TA:'+type+'=>'+action];
+ for(const p of parts){
+  feats.push('K:'+p);
+  feats.push('KA:'+p+'=>'+action);
+ }
+ return feats.map(f=>hashNNUE(f)%nn.dim);
+}
+function nnuePredict(type,key,action){
+ const nn=ensureTinyNNUE(); if(!nn)return 0;
+ if(!['bid','declarer','defense','dummy'].includes(type))type='defense';
+ const idxs=nnueFeatureIndexes(type,key,action);
+ if(!idxs.length)return 0;
+ let sum=nn.bias[type]||0;
+ const w=nn.weights[type];
+ for(const i of idxs)sum+=w[i]||0;
+ sum/=Math.sqrt(idxs.length);
+ return Math.tanh(sum);
+}
+function nnueBonus(type,key,action,scale=6){
+ const nn=ensureTinyNNUE(); if(!nn)return 0;
+ const trust=Math.min(1,Math.log2((nn.trained||0)+1)/10);
+ return nnuePredict(type,key,action)*scale*trust;
+}
+function trainTinyNNUE(type,key,action,reward){
+ const nn=ensureTinyNNUE(); if(!nn)return;
+ if(!['bid','declarer','defense','dummy'].includes(type))type='defense';
+ const idxs=nnueFeatureIndexes(type,key,action);
+ if(!idxs.length)return;
+ const target=Math.max(-1,Math.min(1,Number(reward||0)/1.35));
+ const pred=nnuePredict(type,key,action);
+ const err=target-pred;
+ const lr=(nn.lr||0.022)*(1-Math.abs(pred)*0.35);
+ nn.bias[type]=Math.max(-2,Math.min(2,(nn.bias[type]||0)+lr*err*0.35));
+ const step=lr*err/Math.sqrt(idxs.length);
+ const w=nn.weights[type];
+ for(const i of idxs){
+  w[i]=Math.max(-2.5,Math.min(2.5,(w[i]||0)+step));
+ }
+ nn.trained=(nn.trained||0)+1;
+}
+function createEmptyAIDB(){
+ return {
+  version:'bridge-ai-db-v3',
+  createdAt:new Date().toISOString(),
+  updatedAt:new Date().toISOString(),
+  limits:{bid:450,declarer:250,defense:200,dummy:100,elite:100},
+  games:0,
+  qualifiedGames:0,
+  records:[],
+  elite:[],
+  tactics:{},
+  reflections:[],
+  nnue:createTinyNNUE()
+ };
+}
+function normalizeRecord(r){
+ if(!r||typeof r!=='object')return null;
+ const n=Number(r.n??r.games??0)||0;
+ const w=Number(r.w??r.wins??0)||0;
+ const l=Number(r.l??Math.max(0,n-w))||0;
+ const score=Number(r.score??0)||0;
+ const rec={
+  type:String(r.type||'play'),
+  key:String(r.key||''),
+  action:String(r.action||''),
+  n,w,l,score,
+  score100:Number(r.score100??50)||50,
+  elite:!!r.elite,
+  lastUpdate:Number(r.lastUpdate||Date.now()),
+  tags:(r.tags&&typeof r.tags==='object')?r.tags:{}
+ };
+ if(!rec.key||!rec.action)return null;
+ return rec;
+}
+function migrateOldTableRecords(db,table,out){
+ const root=db&&db[table];
+ if(!root||typeof root!=='object')return;
+ for(const fullKey of Object.keys(root)){
+  const idx=fullKey.lastIndexOf(' => ');
+  if(idx<0)continue;
+  const key=fullKey.slice(0,idx), action=fullKey.slice(idx+4);
+  const x=root[fullKey]||{};
+  out.push(normalizeRecord({type:table,key,action,n:x.n,score:x.score,w:x.w,l:x.l,score100:x.score100,elite:x.elite,lastUpdate:x.lastUpdate,tags:x.tags}));
+ }
+}
+function normalizeAIDB(db){
+ if(!db||typeof db!=='object')return createEmptyAIDB();
+ let out=createEmptyAIDB();
+ out.createdAt=db.createdAt||out.createdAt;
+ out.updatedAt=db.updatedAt||out.updatedAt;
+ out.games=Number(db.games||0)||0;
+ out.qualifiedGames=Number(db.qualifiedGames||0)||0;
+ out.tactics=(db.tactics&&typeof db.tactics==='object')?db.tactics:{};
+ out.reflections=Array.isArray(db.reflections)?db.reflections.slice(-50):[];
+ out.nnue=(db.nnue&&typeof db.nnue==='object')?db.nnue:createTinyNNUE();
+ ensureTinyNNUE(out);
+ let recs=[];
+ if(Array.isArray(db.records))recs=db.records.map(normalizeRecord).filter(Boolean);
+ else{
+  migrateOldTableRecords(db,'bid',recs);
+  migrateOldTableRecords(db,'play',recs);
+  migrateOldTableRecords(db,'declarer',recs);
+  migrateOldTableRecords(db,'defense',recs);
+  migrateOldTableRecords(db,'dummy',recs);
+ }
+ if(Array.isArray(db.elite))out.elite=db.elite.map(normalizeRecord).filter(Boolean);
+ out.records=mergeRecords(recs.filter(Boolean));
+ out.version='bridge-ai-db-v3';
+ pruneAIDB(out);
+ return out;
+}
+function mergeRecords(records){
+ const map=new Map();
+ for(const r of records||[]){
+  const rec=normalizeRecord(r); if(!rec)continue;
+  const id=rec.type+'\u0001'+rec.key+'\u0001'+rec.action;
+  if(!map.has(id))map.set(id,rec);
+  else{
+   const a=map.get(id);
+   a.n+=rec.n; a.w+=rec.w; a.l+=rec.l; a.score+=rec.score;
+   a.lastUpdate=Math.max(a.lastUpdate,rec.lastUpdate);
+   for(const t of Object.keys(rec.tags||{}))a.tags[t]=(a.tags[t]||0)+(rec.tags[t]||0);
+  }
+ }
+ return [...map.values()];
+}
+const IDB_DB_NAME='BridgeAI_DynamicDB';
+const IDB_STORE_NAME='kv';
+const IDB_MAIN_KEY='bridgeDynamicAIDB_v3_main';
+let idbReady=false;
+let idbSaveTimer=null;
+function openBridgeIDB(){
+ return new Promise((resolve,reject)=>{
+  if(!('indexedDB' in window)){reject(new Error('此瀏覽器不支援 IndexedDB'));return;}
+  const req=indexedDB.open(IDB_DB_NAME,1);
+  req.onupgradeneeded=e=>{
+   const db=e.target.result;
+   if(!db.objectStoreNames.contains(IDB_STORE_NAME))db.createObjectStore(IDB_STORE_NAME,{keyPath:'id'});
+  };
+  req.onsuccess=()=>resolve(req.result);
+  req.onerror=()=>reject(req.error||new Error('IndexedDB 開啟失敗'));
+ });
+}
+function idbTxn(mode,fn){
+ return openBridgeIDB().then(db=>new Promise((resolve,reject)=>{
+  const tx=db.transaction(IDB_STORE_NAME,mode);
+  const store=tx.objectStore(IDB_STORE_NAME);
+  let req;
+  try{req=fn(store);}catch(e){db.close();reject(e);return;}
+  tx.oncomplete=()=>{db.close();resolve(req&&'result' in req?req.result:undefined);};
+  tx.onerror=()=>{db.close();reject(tx.error||new Error('IndexedDB transaction failed'));};
+  tx.onabort=()=>{db.close();reject(tx.error||new Error('IndexedDB transaction aborted'));};
+ }));
+}
+async function idbGetAIDB(){
+ const row=await idbTxn('readonly',store=>store.get(IDB_MAIN_KEY));
+ return row&&row.db?row.db:null;
+}
+async function idbSetAIDB(db){
+ const payload={id:IDB_MAIN_KEY,db:db,updatedAt:new Date().toISOString(),version:'bridge-ai-indexeddb-v1'};
+ await idbTxn('readwrite',store=>store.put(payload));
+ return true;
+}
+async function idbDeleteAIDB(){
+ await idbTxn('readwrite',store=>store.delete(IDB_MAIN_KEY));
+}
+function loadAIDB(){
+ // 啟動瞬間先用 localStorage 快取；真正的大資料庫會在 bootAIDBFromIndexedDB() 裡改由 IndexedDB 載入。
+ try{
+  const raw=localStorage.getItem('bridgeDynamicAIDB_v3')||localStorage.getItem('bridgeDynamicAIDB_v1');
+  if(!raw)return createEmptyAIDB();
+  return normalizeAIDB(JSON.parse(raw));
+ }catch(e){return createEmptyAIDB();}
+}
+function clonePlain(obj){
+ try{return JSON.parse(JSON.stringify(obj));}
+ catch(e){return createEmptyAIDB();}
+}
+function trimRecordTags(rec,maxTags){
+ if(!rec||!rec.tags||typeof rec.tags!=='object')return;
+ const entries=Object.entries(rec.tags).sort((a,b)=>(b[1]||0)-(a[1]||0)).slice(0,maxTags);
+ rec.tags=Object.fromEntries(entries);
+}
+function trimTactics(tactics,limit){
+ const out={};
+ Object.entries(tactics||{})
+  .sort((a,b)=>((b[1]&&b[1].n)||0)-((a[1]&&a[1].n)||0))
+  .slice(0,limit)
+  .forEach(([k,v])=>out[k]={n:Number(v.n||0)||0,score:Number(v.score||0)||0,w:Number(v.w||0)||0,l:Number(v.l||0)||0,lastUpdate:Number(v.lastUpdate||Date.now())||Date.now()});
+ return out;
+}
+function roundNNUE(db){
+ const nn=ensureTinyNNUE(db);
+ if(!nn)return;
+ nn.dim=64;
+ nn.lr=+(Number(nn.lr||0.022).toFixed(5));
+ nn.trained=Number(nn.trained||0)||0;
+ for(const t of ['bid','declarer','defense','dummy']){
+  nn.bias[t]=+(Number(nn.bias[t]||0).toFixed(5));
+  nn.weights[t]=nn.weights[t].slice(0,64).map(v=>+(Number(v||0).toFixed(5)));
+  while(nn.weights[t].length<64)nn.weights[t].push(0);
+ }
+}
+function compactAIDBForStorage(db,level=0){
+ const d=clonePlain(db);
+ ensureTinyNNUE(d);
+ d.version='bridge-ai-db-v3';
+ d.createdAt=d.createdAt||new Date().toISOString();
+ d.updatedAt=new Date().toISOString();
+ const profiles=[
+  {bid:450,declarer:250,defense:200,dummy:100,elite:100,ref:50,tac:100,tags:8},
+  {bid:260,declarer:150,defense:120,dummy:70,elite:70,ref:25,tac:70,tags:5},
+  {bid:150,declarer:90,defense:75,dummy:45,elite:45,ref:12,tac:45,tags:3},
+  {bid:80,declarer:50,defense:45,dummy:25,elite:25,ref:6,tac:25,tags:1},
+  {bid:40,declarer:25,defense:25,dummy:12,elite:12,ref:3,tac:12,tags:0}
+ ];
+ const pf=profiles[Math.min(level,profiles.length-1)];
+ d.limits={bid:pf.bid,declarer:pf.declarer,defense:pf.defense,dummy:pf.dummy,elite:pf.elite};
+ pruneAIDB(d);
+ for(const r of [...(d.records||[]),...(d.elite||[])])trimRecordTags(r,pf.tags);
+ d.reflections=Array.isArray(d.reflections)?d.reflections.slice(-pf.ref):[];
+ d.tactics=trimTactics(d.tactics,pf.tac);
+ roundNNUE(d);
+ return d;
+}
+function saveSmallLocalSnapshot(db){
+ // localStorage 只放「快速啟動快取」，真正完整資料放 IndexedDB。
+ try{
+  const compact=compactAIDBForStorage(db,3);
+  const text=JSON.stringify(compact);
+  localStorage.setItem('bridgeDynamicAIDB_v3_cache',text);
+  // 舊 key 改存極小快取，避免再被 5MB 限制卡死。
+  localStorage.setItem('bridgeDynamicAIDB_v3',text);
+ }catch(e){
+  try{localStorage.removeItem('bridgeDynamicAIDB_v3');}catch(_e){}
+ }
+}
+async function saveAIDB(immediate=false){
+ try{
+  ensureTinyNNUE(aiDB);
+  aiDB.updatedAt=new Date().toISOString();
+  if(deferDBSave)return true;
+  pruneAIDB(aiDB);
+  if(!immediate){
+   clearTimeout(idbSaveTimer);
+   idbSaveTimer=setTimeout(()=>saveAIDB(true),250);
+   updateAIDBStats();
+   return true;
+  }
+  await idbSetAIDB(aiDB);
+  idbReady=true;
+  saveSmallLocalSnapshot(aiDB);
+  updateAIDBStats();
+  return true;
+ }catch(e){
+  console.error('AI資料庫儲存失敗',e);
+  updateAutoTrainingStatus('AI資料庫儲存失敗：IndexedDB 無法寫入，可能是瀏覽器私密模式或站點儲存被停用。');
+  return false;
+ }
+}
+async function bootAIDBFromIndexedDB(){
+ try{
+  updateAutoTrainingStatus('正在載入 IndexedDB AI資料庫...');
+  const stored=await idbGetAIDB();
+  if(stored){
+   aiDB=normalizeAIDB(stored);
+   ensureTinyNNUE(aiDB);
+   pruneAIDB(aiDB);
+   idbReady=true;
+   saveSmallLocalSnapshot(aiDB);
+   updateAutoTrainingStatus('IndexedDB AI資料庫已載入，可支援大容量匯入。');
+  }else{
+   aiDB=normalizeAIDB(aiDB);
+   await saveAIDB(true);
+   updateAutoTrainingStatus('已建立 IndexedDB AI資料庫；舊 localStorage 資料已自動遷移。');
+  }
+ }catch(e){
+  console.error('IndexedDB 載入失敗，改用 localStorage 快取',e);
+  idbReady=false;
+  aiDB=normalizeAIDB(aiDB);
+  updateAutoTrainingStatus('IndexedDB 載入失敗，暫時改用小型快取模式：'+(e&&e.message?e.message:e));
+ }
+ updateAIDBStats();
+}
+function recordId(type,key,action){return type+'\u0001'+key+'\u0001'+action;}
+function findRecord(type,key,action){
+ return (aiDB.records||[]).find(r=>r.type===type&&r.key===key&&r.action===action) || (aiDB.elite||[]).find(r=>r.type===type&&r.key===key&&r.action===action);
+}
+function dbBucket(type,key,action){
+ aiDB.records=aiDB.records||[];
+ let r=findRecord(type,key,action);
+ if(!r){r={type,key,action,n:0,score:0,w:0,l:0,score100:50,elite:false,lastUpdate:Date.now(),tags:{}};aiDB.records.push(r);}
+ return r;
+}
+function recordScore100(x){
+ const n=x.n||0, avg=n?x.score/n:0, wr=n?(x.w||0)/Math.max(1,n):0.5;
+ // 樣本很少時，不讓一次勝利直接變神招；樣本越多越可信。
+ const trust=Math.min(1,Math.log2(n+1)/5);
+ const base=50+avg*24+(wr-0.5)*34;
+ return Math.max(0,Math.min(100,50+(base-50)*trust+Math.log2(n+1)*2));
+}
+function recordRank(x){
+ const n=x.n||0, wr=n?(x.w||0)/Math.max(1,n):0.5;
+ return (x.score100||50)*0.72 + wr*18 + Math.log2(n+1)*6 + (x.elite?30:0);
+}
+function pruneAIDB(db=aiDB){
+ db.records=mergeRecords(db.records||[]);
+ db.elite=mergeRecords(db.elite||[]);
+ const limits=db.limits||{bid:450,declarer:250,defense:200,dummy:100,elite:100};
+ const candidates=[];
+ for(const r of db.records){
+  r.score100=recordScore100(r);
+  const wr=(r.n||0)?(r.w||0)/r.n:0;
+  r.elite=r.score100>=95 && (r.n||0)>=20 && wr>=0.70;
+  if(r.elite)candidates.push({...r});
+ }
+ db.elite=mergeRecords([...(db.elite||[]),...candidates]);
+ db.elite.forEach(r=>{r.score100=recordScore100(r);r.elite=true;});
+ db.elite.sort((a,b)=>recordRank(b)-recordRank(a));
+ db.elite=db.elite.slice(0,limits.elite||100);
+ const eliteIds=new Set(db.elite.map(r=>recordId(r.type,r.key,r.action)));
+ db.records=db.records.filter(r=>!eliteIds.has(recordId(r.type,r.key,r.action)));
+ const kept=[];
+ for(const type of ['bid','declarer','defense','dummy']){
+  const arr=db.records.filter(r=>r.type===type);
+  arr.forEach(r=>{r.score100=recordScore100(r);});
+  arr.sort((a,b)=>recordRank(b)-recordRank(a));
+  kept.push(...arr.slice(0,limits[type]||0));
+ }
+ // 舊版匯入或未知類型，轉存少量，避免資料不見但不污染主庫。
+ const misc=db.records.filter(r=>!['bid','declarer','defense','dummy'].includes(r.type));
+ misc.forEach(r=>{r.score100=recordScore100(r);});
+ misc.sort((a,b)=>recordRank(b)-recordRank(a));
+ kept.push(...misc.slice(0,50));
+ db.records=kept;
+ if(db.reflections&&db.reflections.length>50)db.reflections=db.reflections.slice(-50);
+}
+function dbAvg(type,key,action){
+ const x=findRecord(type,key,action);
+ return x&&x.n?x.score/x.n:0;
+}
+function dbBonus(type,key,action,scale=18){
+ let x=findRecord(type,key,action);
+ let nnType=type;
+ if(!x && type==='play'){
+  // 相容舊呼叫：若沒有指定莊家/防守/夢家，就找三類中最可信的一筆。
+  const arr=['declarer','defense','dummy'].map(t=>findRecord(t,key,action)).filter(Boolean).sort((a,b)=>recordRank(b)-recordRank(a));
+  x=arr[0];
+  if(x)nnType=x.type;
+ }
+ if(!['bid','declarer','defense','dummy'].includes(nnType))nnType='defense';
+ const neural=nnueBonus(nnType,key,action,scale*0.34);
+ if(!x||!x.n)return neural;
+ const avg=x.score/x.n;
+ const trust=Math.min(1,Math.log2(x.n+1)/5);
+ const eliteBoost=x.elite?0.18:0;
+ return (avg+eliteBoost)*scale*trust + neural;
+}
+function tacticBonus(tags,scale=10){
+ if(!tags||!tags.length)return 0;
+ let v=0;
+ for(const t of tags){
+  const x=aiDB.tactics&&aiDB.tactics[t];
+  if(!x||!x.n)continue;
+  const avg=x.score/x.n;
+  const trust=Math.min(1,Math.log2(x.n+1)/6);
+  v+=avg*scale*trust;
+ }
+ return v;
+}
+function learnTactics(tags,reward){
+ if(!tags||!tags.length)return;
+ aiDB.tactics=aiDB.tactics||{};
+ for(const t of tags){
+  const x=aiDB.tactics[t]||(aiDB.tactics[t]={n:0,score:0,w:0,l:0,lastUpdate:Date.now()});
+  x.n++; x.score+=reward; if(reward>0)x.w++; else x.l++; x.lastUpdate=Date.now();
+ }
+}
+function playRecordTypeForSeat(seat){
+ if(contract&&declarer!==null&&teamOf(seat)===teamOf(declarer))return seat===dummy?'dummy':'declarer';
+ return 'defense';
+}
+function recordTypeForDecision(d){
+ if(d.type==='bid')return 'bid';
+ if(d.type==='play')return playRecordTypeForSeat(d.seat);
+ return d.type||'defense';
+}
+function learnFromTrace(winningTeam,quality=1){
+ if(!learningEnabled||!decisionTrace.length)return;
+ const positive=[], negative=[];
+ for(const d of decisionTrace){
+  const won=teamOf(d.seat)===winningTeam;
+  let reward=(won?1:-1)*quality;
+  if(d.local)reward+=d.local*0.25;
+  const type=recordTypeForDecision(d);
+  const b=dbBucket(type,d.key,d.action);
+  b.n++; b.score+=reward; if(won)b.w++; else b.l++; b.lastUpdate=Date.now();
+  trainTinyNNUE(type,d.key,d.action,reward);
+  if(d.tags){for(const t of d.tags)b.tags[t]=(b.tags[t]||0)+1; learnTactics(d.tags,reward);}
+  const note=(d.tags||[]).join('、');
+  if(note&&reward>0.75)positive.push(note);
+  if(note&&reward<-0.75)negative.push(note);
+ }
+ aiDB.games++; if(quality>=0.85)aiDB.qualifiedGames++;
+ addReflection(winningTeam,quality,positive,negative);
+ saveAIDB();
+}
+function addReflection(winningTeam,quality,positive,negative){
+ const topGood=mostCommon(positive).slice(0,3).join('、')||'穩定基本牌理';
+ const topBad=mostCommon(negative).slice(0,3).join('、')||'無明顯失誤';
+ aiDB.reflections=aiDB.reflections||[];
+ aiDB.reflections.push({time:new Date().toISOString(),winningTeam,quality:+quality.toFixed(2),good:topGood,bad:topBad});
+}
+function mostCommon(arr){
+ const m={}; arr.forEach(x=>m[x]=(m[x]||0)+1);
+ return Object.keys(m).sort((a,b)=>m[b]-m[a]);
+}
+function exportAIDB(){
+ pruneAIDB(aiDB);
+ const blob=new Blob([JSON.stringify(aiDB,null,2)],{type:'application/json'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='Bridge_AI_Dynamic_Database_v3_'+new Date().toISOString().slice(0,10)+'.json';
+ a.click();
+ URL.revokeObjectURL(a.href);
+}
+function safeCloneDB(db){
+ try{
+  if(typeof structuredClone==='function')return structuredClone(db);
+ }catch(e){}
+ try{return JSON.parse(JSON.stringify(db));}
+ catch(e){return createEmptyAIDB();}
+}
+function unwrapImportedDB(raw){
+ // 支援：直接匯出的 v3、舊版 v1/v2、陣列紀錄、以及被包在 database/data/aiDB 底下的備份檔。
+ if(!raw)return raw;
+ if(Array.isArray(raw))return {version:'bridge-ai-db-v3',records:raw};
+ if(typeof raw!=='object')return raw;
+ for(const k of ['database','db','aiDB','bridgeAI','data']){
+  if(raw[k]&&typeof raw[k]==='object'){
+   const x=raw[k];
+   if(Array.isArray(x.records)||Array.isArray(x.elite)||x.bid||x.play||x.declarer||x.defense||x.dummy||x.nnue||x.tactics||x.reflections||x.version){
+    return x;
+   }
+  }
+ }
+ return raw;
+}
+function hasImportableDBShape(db){
+ db=unwrapImportedDB(db);
+ if(!db||typeof db!=='object')return false;
+ if(Array.isArray(db))return true;
+ if(Array.isArray(db.records)||Array.isArray(db.elite))return true;
+ if(db.bid||db.play||db.declarer||db.defense||db.dummy)return true;
+ if(db.nnue||db.tactics||db.reflections)return true;
+ if(db.version&&String(db.version).toLowerCase().includes('bridge'))return true;
+ if(Number(db.games||0)>0||Number(db.qualifiedGames||0)>0)return true;
+ return false;
+}
+function parseImportedJSON(text){
+ let t=String(text||'').trim();
+ if(t.charCodeAt(0)===0xFEFF)t=t.slice(1).trim();
+ if(!t)throw new Error('檔案是空的');
+ try{return JSON.parse(t);}
+ catch(e){
+  // 有些檔案開頭被塞了文字，嘗試抓第一個 JSON 物件範圍。
+  const a=t.indexOf('{'), b=t.lastIndexOf('}');
+  if(a>=0&&b>a)return JSON.parse(t.slice(a,b+1));
+  throw new Error('JSON 解析失敗：'+(e.message||e));
+ }
+}
+function importAIDB(ev){
+ const f=ev.target.files&&ev.target.files[0]; if(!f)return;
+ const backup=safeCloneDB(aiDB);
+ const r=new FileReader();
+ updateAutoTrainingStatus('正在匯入AI資料庫...');
+ r.onload=async ()=>{
+  try{
+   const raw=parseImportedJSON(r.result);
+   const unwrapped=unwrapImportedDB(raw);
+   if(!hasImportableDBShape(unwrapped))throw new Error('不是橋牌AI資料庫格式');
+   const next=normalizeAIDB(unwrapped);
+   ensureTinyNNUE(next);
+   pruneAIDB(next);
+   aiDB=next;
+   const ok=await saveAIDB(true);
+   if(!ok){
+    aiDB=backup;
+    await saveAIDB(true);
+    throw new Error('IndexedDB 寫入失敗，請確認瀏覽器沒有停用站點儲存或私密模式限制');
+   }
+   const counts=dbTypeCounts();
+   updateAutoTrainingStatus(`資料庫匯入成功：IndexedDB v3+NNUE｜${aiDB.games||0}局｜叫牌${counts.bid}/${aiDB.limits.bid}｜莊家${counts.declarer}/${aiDB.limits.declarer}｜防守${counts.defense}/${aiDB.limits.defense}｜夢家${counts.dummy}/${aiDB.limits.dummy}｜神級${counts.elite}/${aiDB.limits.elite}｜NNUE ${aiDB.nnue&&aiDB.nnue.trained?aiDB.nnue.trained:0}步`);
+   if(developerMode)updateAIDBStats();
+  }catch(e){
+   console.error('資料庫匯入失敗，已恢復匯入前資料庫',e);
+   aiDB=backup;
+   saveAIDB();
+   updateAutoTrainingStatus('資料庫匯入失敗：'+(e&&e.message?e.message:e)+'。已恢復匯入前狀態。');
+  }
+  ev.target.value='';
+ };
+ r.onerror=()=>{
+  aiDB=backup; saveAIDB(); ev.target.value='';
+  updateAutoTrainingStatus('讀取檔案失敗，已恢復匯入前狀態。');
+ };
+ r.readAsText(f);
+}
+function dbTypeCounts(){
+ const c={bid:0,declarer:0,defense:0,dummy:0,elite:(aiDB.elite||[]).length,total:0,misc:0};
+ for(const r of aiDB.records||[]){
+  if(c[r.type]!==undefined)c[r.type]++; else c.misc++;
+ }
+ c.total=c.bid+c.declarer+c.defense+c.dummy;
+ return c;
+}
+function updateAIDBStats(){
+ if(!aiDbStats)return;
+ ensureTinyNNUE(aiDB);
+ const c=dbTypeCounts();
+ aiDbStats.textContent=`AI資料庫 v3 + NNUE-lite\n已訓練局數：${aiDB.games||0}\n高品質局數：${aiDB.qualifiedGames||0}\n叫牌：${c.bid}/450\n莊家：${c.declarer}/250\n防守：${c.defense}/200\n夢家：${c.dummy}/100\n神級精華：${c.elite}/100\n主資料庫：${c.total}/1000\nNNUE訓練步數：${aiDB.nnue&&aiDB.nnue.trained?aiDB.nnue.trained:0}`;
+}
+function simpleHandShape(hand){const c={};suits.forEach(s=>c[s]=0);hand.forEach(x=>c[x.s]++);return suits.map(s=>c[s]).sort((a,b)=>b-a).join('-')}
+function bidContextKey(seat){
+ const pts=handPoints(players[seat].hand); const p=Math.floor(pts/3)*3;
+ const long=longestSuit(players[seat].hand); const high=currentHighestBid(); const partner=latestPartnerBid(seat);
+ return ['P'+p,'L'+long,'H'+(high?bidLabel(high.call):'none'),'PB'+(partner?bidLabel(partner.call):'none'),'T'+teamOf(seat)].join('|');
+}
+function playContextKey(seat,legal){
+ const lead=trick.length?trick[0].card.s:'lead'; const trump=contract?contract.strain:'none';
+ const win=trick.length?winnerOfTrick([...trick]):null; const teamWin=win?teamOf(win.seat)===teamOf(seat):false;
+ const canWin=trick.length?legal.some(c=>winnerOfTrick([...trick,{seat,card:c}]).seat===seat):false;
+ const buckets=legal.map(c=>c.s+(rankOrder[c.r]>=9?'H':rankOrder[c.r]>=5?'M':'L')).sort().join(',');
+ return ['C'+(contract?contract.level+contract.strain:'none'),'T'+trump,'L'+lead,'TW'+(teamWin?1:0),'CW'+(canWin?1:0),'N'+trick.length,'B'+buckets].join('|');
+}
+function actionOfCard(c){return c.s+(rankOrder[c.r]>=9?'H':rankOrder[c.r]>=5?'M':'L')}
+function classifyBidTactics(seat,call){
+ const tags=[]; const pts=handPoints(players[seat].hand); const partner=latestPartnerBid(seat); const high=currentHighestBid();
+ if(call==='Pass'){
+  if(pts<=7)tags.push('BID_LOW_POINT_PASS');
+  if(partner&&pts>=10)tags.push('BID_TOO_PASSIVE_RISK');
+  return tags;
+ }
+ if(!high)tags.push('BID_OPENING');
+ if(partner&&call.strain===partner.call.strain)tags.push('BID_SUPPORT_PARTNER');
+ if(partner&&call.strain!==partner.call.strain)tags.push('BID_CHANGE_SUIT');
+ if(call.strain==='NT')tags.push('BID_NO_TRUMP');
+ if(call.level>=3)tags.push('BID_GAME_TRY');
+ if(pts>=16)tags.push('BID_STRONG_HAND');
+ return tags;
+}
+function classifyCardTactics(seat,legal,card){
+ const tags=[]; const trump=contract&&contract.strain!=='NT'?contract.strain:null;
+ if(!trick.length){
+  const cnt={};suits.forEach(s=>cnt[s]=0);players[seat].hand.forEach(c=>cnt[c.s]++);
+  if(cnt[card.s]>=5&&rankOrder[card.r]<=6)tags.push('ESTABLISH_LONG_SUIT');
+  if(shouldDrawTrumpNow(seat,card))tags.push('DRAW_TRUMP');
+  if(['A','K'].includes(card.r))tags.push('LEAD_HIGH_CONTROL');
+  else tags.push('SAFE_LOW_LEAD');
+  return tags;
+ }
+ const before=winnerOfTrick([...trick]);
+ const teammateWinning=before&&teamOf(before.seat)===teamOf(seat);
+ const winsNow=winnerOfTrick([...trick,{seat,card}]).seat===seat;
+ const winningCards=[...legal].filter(c=>winnerOfTrick([...trick,{seat,card:c}]).seat===seat).sort((a,b)=>rankOrder[a.r]-rankOrder[b.r]);
+ const minWinner=winningCards[0];
+ if(teammateWinning&&rankOrder[card.r]<=5)tags.push('PARTNER_WIN_THROW_LOW');
+ if(teammateWinning&&['A','K','Q'].includes(card.r))tags.push('WASTE_HIGH_WHEN_PARTNER_WIN');
+ if(winsNow&&minWinner&&card.id===minWinner.id)tags.push('MIN_WIN_CARD');
+ if(winsNow&&minWinner&&card.id!==minWinner.id)tags.push('OVERKILL_HIGH_CARD');
+ if(!winsNow&&rankOrder[card.r]<=4)tags.push('LOSE_LOW_CARD');
+ if(trump&&card.s===trump&&card.s!==trick[0].card.s)tags.push(winsNow?'RUFF_WIN':'RUFF_WASTE');
+ if(['A','K'].includes(card.r)&&!winsNow)tags.push('BURN_CONTROL_CARD');
+ return tags;
+}
+function localCardScoreFromTags(tags){
+ let v=0;
+ for(const t of tags||[]){
+  if(['PARTNER_WIN_THROW_LOW','MIN_WIN_CARD','LOSE_LOW_CARD','RUFF_WIN','DRAW_TRUMP','ESTABLISH_LONG_SUIT','SAFE_LOW_LEAD'].includes(t))v+=0.35;
+  if(['WASTE_HIGH_WHEN_PARTNER_WIN','OVERKILL_HIGH_CARD','RUFF_WASTE','BURN_CONTROL_CARD'].includes(t))v-=0.55;
+ }
+ return v;
+}
+function qualityFromResult(){
+ if(!contract)return 0.55;
+ const dTeam=teamOf(declarer), got=tricks[dTeam], target=6+contract.level, margin=Math.abs(got-target);
+ return Math.max(0.55,Math.min(1.25,0.75+margin*0.12));
+}
+
+function cmp(a,b){return suitOrder[a.s]-suitOrder[b.s]||rankOrder[a.r]-rankOrder[b.r]}
+function cardHtml(c,selectable=false){
+ const color=(c.s==='♥'||c.s==='♦')?'redSuit':'blackSuit';
+ const sel=selected&&selected.id===c.id?' selected':'';
+ return `<div class="card${selectable?sel:''}" data-id="${c.id}"><div class="rank ${color}">${c.r}</div><div class="suit ${color}">${c.s}</div></div>`;
+}
+function init(){
+ const deck=makeDeck();
+ players=[0,1,2,3].map(i=>({hand:deck.slice(i*13,i*13+13).sort(cmp)}));
+ phase='bidding';dealer=0;bidTurn=0;bids=[];contract=null;declarer=null;dummy=null;leader=null;current=0;trick=[];tricks={NS:0,EW:0};selected=null;gameOver=false;thinking=false;openingLeadDone=false;resultText='';trickLabels={};labelTimers={};lastTrickWinnerText='';winningTeam=null;lastCompletedTrick=[];lastCompletedWinner=null;lastPlayerBidPromptKey='';
+ resetAIMemory();
+ decisionTrace=[];
+ renderBidButtons();render();
+ if(bidTurn===0){
+  if(playerAutoplay)setTimeout(aiBid,220);
+  else promptPlayerBidIfNeeded();
+ }else setTimeout(aiBid,600);
+}
+function renderBidButtons(){
+ bidGrid.innerHTML='';
+ for(let lv=1;lv<=7;lv++){
+  for(const st of allStrains){
+   const b=document.createElement('button');
+   b.textContent=lv+st;
+   b.onclick=()=>playerBid({level:lv,strain:st});
+   bidGrid.appendChild(b);
+  }
+ }
+}
+function updateBidButtons(){
+ if(!bidGrid)return;
+ [...bidGrid.querySelectorAll('button')].forEach(btn=>{
+  const txt=btn.textContent;
+  const strain=txt.endsWith('NT')?'NT':txt.slice(1);
+  const level=parseInt(txt[0],10);
+  const call={level,strain};
+  const legal=phase==='bidding'&&bidTurn===0&&!thinking&&!playerAutoplay&&isLegalBid(call);
+  btn.disabled=!legal;
+  btn.classList.toggle('illegal',!legal);
+ });
+ passBtn.disabled=!(phase==='bidding'&&bidTurn===0&&!thinking&&!playerAutoplay);
+}
+function bidValue(b){return b.level*5+suitOrder[b.strain]}
+function bidLabel(call){
+ return call==='Pass'?'Pass':call.level+call.strain;
+}
+function renderAuctionTable(){
+ const headerOrder=[1,2,3,0]; // W N E S
+ const labels={0:'S',1:'W',2:'N',3:'E'};
+ let rows=[];
+ let row={0:'',1:'',2:'',3:''};
+ for(const b of bids){
+  row[b.seat]=bidLabel(b.call);
+  // 每輪到 S 後換列；若發牌者固定南家，這和一般 W-N-E-S 表格一致。
+  if(b.seat===0){
+   rows.push(row);
+   row={0:'',1:'',2:'',3:''};
+  }
+ }
+ if(Object.values(row).some(x=>x!==''))rows.push(row);
+ let html='<table class="auction-table"><thead><tr>';
+ for(const s of headerOrder)html+=`<th>${labels[s]}</th>`;
+ html+='</tr></thead><tbody>';
+ if(rows.length===0)rows=[{0:'',1:'',2:'',3:''}];
+ for(const r of rows){
+  html+='<tr>';
+  for(const s of headerOrder){
+   const v=r[s]||'';
+   const cls=!v?'empty':(v==='Pass'?'pass':'bid');
+   html+=`<td class="${cls}">${v||'.'}</td>`;
+  }
+  html+='</tr>';
+ }
+ html+='</tbody></table>';
+ return html;
+}
+
+function currentHighestBid(){return [...bids].reverse().find(b=>b.call!=='Pass')}
+function isLegalBid(call){
+ if(call==='Pass')return true;
+ const high=currentHighestBid();
+ if(!high)return true;
+ return bidValue(call)>bidValue(high.call);
+}
+function playerBid(call){
+ if(phase!=='bidding'||bidTurn!==0||thinking||playerAutoplay)return;
+ if(!isLegalBid(call)){const high=currentHighestBid();alert(`叫牌必須高於目前最高叫牌：${high?high.call.level+high.call.strain:'尚無'}`);return}
+ // 玩家已經開始叫牌，移除「輪到你叫牌」提示泡泡。
+ [...bubbleLayer.querySelectorAll('.p0b')].forEach(x=>x.remove());
+ commitBid(0,call);
+}
+function showBidBubble(seat,text){
+ if(renderSuspended||!bubbleLayer)return;
+ const div=document.createElement('div');
+ div.className='bid-bubble p'+seat+'b';
+ div.textContent=text;
+ bubbleLayer.appendChild(div);
+ setTimeout(()=>div.remove(),1500);
+}
+
+function promptPlayerBidIfNeeded(){
+ if(!playerAutoplay && phase==='bidding' && bidTurn===0 && !thinking && !gameOver){
+  const key=bids.length+'-'+bidTurn;
+  if(lastPlayerBidPromptKey!==key){
+   lastPlayerBidPromptKey=key;
+   setTimeout(()=>showBidBubble(0,'輪到你叫牌'),80);
+  }
+ }
+}
+function commitBid(seat,call){
+ bids.push({seat,call});
+ showBidBubble(seat, bidLabel(call));
+ if(call!=='Pass')contract={...call,seat};
+ render();
+
+ if(isPassedOut()){
+  setTimeout(redealPassedOut,350);
+  return;
+ }
+
+ if(shouldEndBidding()){
+  finishBidding();
+  return;
+ }
+ bidTurn=(bidTurn+1)%4;
+ render();
+ if(bidTurn===0){
+  if(playerAutoplay)setTimeout(aiBid,260);
+  else promptPlayerBidIfNeeded();
+ } else setTimeout(aiBid,650);
+}
+function shouldEndBidding(){
+ if(bids.length<4)return false;
+ const last3=bids.slice(-3);
+ return contract&&last3.every(b=>b.call==='Pass');
+}
+function isPassedOut(){
+ return !contract && bids.length>=4 && bids.slice(0,4).every(b=>b.call==='Pass');
+}
+function redealPassedOut(){
+ if(trainingBusy)return;
+ addPlayLog('四家皆 Pass，流局，重新發下一局。');
+ if(!suppressAlerts&&!trainingBusy&&!autoTraining)alert('四家皆 Pass，流局，重新發下一局。');
+ init();
+}
+function aiBid(){
+ if(trainingBusy)return;
+ if(phase!=='bidding')return;
+ thinking=true;render();
+ setTimeout(()=>{
+  const call=chooseAiBid(bidTurn);
+  decisionTrace.push({type:'bid',seat:bidTurn,key:bidContextKey(bidTurn),action:bidLabel(call),tags:classifyBidTactics(bidTurn,call)});
+  thinking=false;
+  commitBid(bidTurn,call);
+ },550);
+}
+function handPoints(hand){
+ const pts={A:4,K:3,Q:2,J:1};return hand.reduce((s,c)=>s+(pts[c.r]||0),0);
+}
+function longestSuit(hand){
+ let counts={};for(const s of suits)counts[s]=0;hand.forEach(c=>counts[c.s]++);
+ return suits.sort((a,b)=>counts[b]-counts[a]||suitOrder[b]-suitOrder[a])[0];
+}
+function suitCount(hand,suit){
+ return hand.filter(c=>c.s===suit).length;
+}
+function latestBidByTeam(team){
+ for(let i=bids.length-1;i>=0;i--){
+  const b=bids[i];
+  if(b.call!=='Pass'&&teamOf(b.seat)===team)return b;
+ }
+ return null;
+}
+function latestBidByOpp(team){
+ for(let i=bids.length-1;i>=0;i--){
+  const b=bids[i];
+  if(b.call!=='Pass'&&teamOf(b.seat)!==team)return b;
+ }
+ return null;
+}
+function isEnemySuit(seat,strain){
+ if(strain==='NT')return false;
+ const opp=latestBidByOpp(teamOf(seat));
+ return opp && opp.call.strain===strain;
+}
+function cappedBid(level,strain){
+ // 教學版 AI 不碰滿貫與5階以上，避免亂衝。
+ if(strain==='NT')level=Math.min(level,3); // 不碰4NT以上
+ else level=Math.min(level,4);             // 花色最高4階
+ return {level,strain};
+}
+function aiBidAllowed(b){
+ if(b==='Pass')return true;
+ if(b.strain==='NT')return b.level<=3;
+ return b.level<=4;
+}
+function findLegalBidFrom(candidates){
+ for(const b of candidates){
+  if(b==='Pass')return 'Pass';
+  if(aiBidAllowed(b)&&isLegalBid(b))return b;
+ }
+ return 'Pass';
+}
+function chooseAiBid(seat){
+ const hand=players[seat].hand;
+ const pts=handPoints(hand);
+ const long=longestSuit(hand);
+ const team=teamOf(seat);
+ const high=currentHighestBid();
+ const partnerBid=latestPartnerBid(seat);
+ const ownBid=latestBidBySeat(seat);
+ const enemyBid=latestBidByOpp(team);
+ const shape=shapeInfo(hand);
+ const dist=distributionPoints(shape.counts);
+ const total=pts+dist;
+ const longLen=shape.counts[long];
+
+ // 無人叫牌：維持自然、保守的開叫。
+ if(!high){
+  if(isBalanced(shape.counts)){
+   if(pts>=20&&pts<=21)return {level:2,strain:'NT'};
+   if(pts>=16&&pts<=18)return {level:1,strain:'NT'};
+  }
+  if(total>=12&&longLen>=5)return {level:1,strain:long};
+  if(pts>=13)return {level:1,strain:long};
+  return 'Pass';
+ }
+
+ // 真正的隊友叫過才進入「回應隊友」；不再把自己的前一次叫牌誤認成隊友叫牌。
+ if(partnerBid){
+  return choosePartnerResponseByWeight(seat,partnerBid);
+ }
+
+ // 自己先前已經叫過、隊友沒有表示：除非敵方競叫且自己有明顯再叫價值，否則收手。
+ if(ownBid){
+  if(enemyBid&&teamOf(high.seat)!==team&&pts>=16&&longLen>=6&&long!==enemyBid.call.strain){
+   const rebid=minLegalBidForStrain(long);
+   if(rebid&&rebid.level<=3)return rebid;
+  }
+  return 'Pass';
+ }
+
+ // 本方尚未叫過、敵方已叫：插叫保守。
+ if(enemyBid&&teamOf(high.seat)!==team){
+  const enemyStrain=high.call.strain;
+  if(pts>=15&&longLen>=5&&long!==enemyStrain){
+   const overcall=minLegalBidForStrain(long);
+   if(overcall&&overcall.level<=3)return overcall;
+  }
+  if(isBalanced(shape.counts)&&pts>=18&&countStoppedSuits(hand)>=3){
+   const nt=minLegalBidForStrain('NT');
+   if(nt&&nt.level<=2)return nt;
+  }
+  return 'Pass';
+ }
+
+ return 'Pass';
+}
+
+function chooseBidWithLearning(seat,cands){
+ const legal=cands.filter(c=>c==='Pass'||isLegalBid(c));
+ if(!legal.length)return 'Pass';
+ const key=bidContextKey(seat);
+ let best=legal[0],bestScore=-99999;
+ for(const c of legal){
+  const action=bidLabel(c);
+  let score=(c==='Pass'?0:8)+dbBonus('bid',key,action,14)+tacticBonus(classifyBidTactics(seat,c),7)+Math.random()*0.01;
+  if(c!=='Pass'&&!aiBidAllowed(c))score-=999;
+  if(score>bestScore){bestScore=score;best=c;}
+ }
+ return best;
+}
+function choosePartnerResponseByWeight(seat,partnerBid){
+ const hand=players[seat].hand;
+ const pts=handPoints(hand);
+ const shape=shapeInfo(hand);
+ const partnerStrain=partnerBid.call.strain;
+ const partnerLevel=partnerBid.call.level;
+ const partnerPts=estimatePartnerStrength(partnerBid);
+ const combined=pts+partnerPts;
+ const shownLen=partnerStrain==='NT'?0:estimatePartnerSuitLength(partnerBid);
+ const support=partnerStrain==='NT'?0:suitCount(hand,partnerStrain);
+ const fit=shownLen+support;
+ const candidates=['Pass'];
+
+ // 支持隊友原花色：只產生合理的逐級加叫，避免從1階亂跳。
+ if(partnerStrain!=='NT'&&support>=3){
+  const firstRaise=Math.max(partnerLevel+1,(minLegalBidForStrain(partnerStrain)||{}).level||partnerLevel+1);
+  for(let lv=firstRaise;lv<=Math.min(5,firstRaise+2);lv++){
+   const c={level:lv,strain:partnerStrain};
+   if(isLegalBid(c))candidates.push(c);
+  }
+ }
+
+ // 無王只在沒有三張支持時考慮，並按牌力逐級開放；不再讓1♣直接無條件跳3NT。
+ if(isBalanced(shape.counts)&&support<3){
+  const stopped=countStoppedSuits(hand);
+  const oneNT={level:1,strain:'NT'};
+  if(pts>=8&&isLegalBid(oneNT))candidates.push(oneNT);
+  const twoNT={level:2,strain:'NT'};
+  if(combined>=23&&stopped>=3&&isLegalBid(twoNT))candidates.push(twoNT);
+  const threeNT={level:3,strain:'NT'};
+  if(combined>=28&&stopped===4&&support<=1&&isLegalBid(threeNT))candidates.push(threeNT);
+ }
+
+ // 有非常明顯的自有六張長套，才允許改叫自己的花色；一般五張套不搶隊友。
+ const ownLong=longestSuit(hand);
+ if(ownLong!==partnerStrain&&suitCount(hand,ownLong)>=6&&pts>=12){
+  const c=minLegalBidForStrain(ownLong);
+  if(c&&c.level<=3)candidates.push(c);
+ }
+
+ let best='Pass',bestScore=-Infinity,bestMeta=null;
+ for(const call of candidates){
+  const result=scorePartnerResponse(seat,call,partnerBid,{pts,combined,support,fit,shape});
+  if(result.score>bestScore){
+   bestScore=result.score;
+   best=call;
+   bestMeta=result;
+  }
+ }
+ if(!renderSuspended)console.debug('AI叫牌權重',seats[seat],partnerBid.call,'=>',best,bestMeta);
+ return best;
+}
+
+function scorePartnerResponse(seat,call,partnerBid,ctx){
+ const hand=players[seat].hand;
+ const partnerStrain=partnerBid.call.strain;
+ const partnerLevel=partnerBid.call.level;
+ const {pts,combined,support,fit,shape}=ctx;
+
+ if(call==='Pass'){
+  let score=18;
+  if(pts<=5)score+=90;
+  else if(pts<=8)score+=48;
+  else if(pts<=10)score+=18;
+  if(partnerStrain!=='NT'&&fit>=8&&combined>=22)score-=70;
+  if(combined>=25)score-=55;
+  return {score,reason:'保守Pass'};
+ }
+
+ const target=6+call.level;
+ const estimate=estimateTeamTricksForBid(seat,call,partnerBid);
+ const gap=estimate-target;
+ let score=0;
+
+ // 合約估計越接近可取得墩數，獎勵越高；估太多而倒約則重扣。
+ if(gap>=-0.20&&gap<=0.75)score+=190;          // 幾乎精準
+ else if(gap>0.75&&gap<=1.50)score+=125;      // 安全但不過度保守
+ else if(gap>1.50&&gap<=2.50)score+=55;       // 明顯叫低，仍可接受
+ else if(gap>2.50)score+=12;                  // 太保守
+ else if(gap>-1.0)score-=115;                 // 有一點超叫風險
+ else if(gap>-2.0)score-=235;                 // 估計少一至兩墩
+ else score-=380;                             // 明顯亂衝
+
+ // 任何壓過隊友叫牌都先付出成本；同花色合理支持可把成本賺回來。
+ const levelJump=Math.max(0,call.level-partnerLevel);
+ score-=22;
+ if(levelJump>1)score-=(levelJump-1)*58;
+
+ if(call.strain===partnerStrain){
+  score+=62;
+  if(fit>=8)score+=85;
+  if(fit>=9)score+=35;
+  if(support===3)score+=18;
+  if(support>=4)score+=38;
+  if(levelJump===1)score+=34;
+ }else{
+  // 改掉隊友花色本身要扣分，因為這正是先前1♣直接跳3NT的來源。
+  score-=68;
+
+  if(call.strain==='NT'){
+   const stopped=countStoppedSuits(hand);
+   if(isBalanced(shape.counts))score+=35;
+   else score-=80;
+   score+=(stopped-2)*18;
+
+   // 隊友自然花色已有八張以上配合時，改NT重扣；梅花/方塊也不能無視。
+   if(partnerStrain!=='NT'&&fit>=8)score-=145;
+   else if(partnerStrain!=='NT'&&fit===7)score-=55;
+
+   // 3NT必須真的估得到9墩、均型、沒有明顯配合，否則額外重罰。
+   if(call.level===3){
+    if(estimate<8.8)score-=180;
+    if(!isBalanced(shape.counts))score-=120;
+    if(fit>=8)score-=170;
+    if(stopped<3)score-=95;
+    if(combined<26)score-=90;
+   }
+  }else{
+   const ownLen=suitCount(hand,call.strain);
+   if(ownLen>=6&&pts>=13)score+=45;
+   else score-=75;
+  }
+ }
+
+ // 花色合約與配合的附加判斷。
+ if(call.strain!=='NT'){
+  const ownLen=suitCount(hand,call.strain);
+  if(call.strain===partnerStrain&&fit<8)score-=75;
+  if(call.strain!==partnerStrain&&ownLen<6)score-=90;
+ }
+
+ // 小型隨機只用來打破完全同分，不改變判斷方向。
+ score+=Math.random()*0.01;
+ return {score,estimate,target,gap,fit,support,combined};
+}
+
+function estimateTeamTricksForBid(seat,call,partnerBid){
+ const hand=players[seat].hand;
+ const pts=handPoints(hand);
+ const partnerPts=estimatePartnerStrength(partnerBid);
+ const combined=pts+partnerPts;
+ const shape=shapeInfo(hand);
+
+ // 約每3點高張力換算一墩，作為休閒版的基礎估計。
+ let tricks=6+(combined-18)/3.0;
+ const aces=hand.filter(c=>c.r==='A').length;
+ const kings=hand.filter(c=>c.r==='K').length;
+ tricks+=aces*0.10+kings*0.04;
+
+ if(call.strain==='NT'){
+  if(!isBalanced(shape.counts))tricks-=0.85;
+  const stopped=countStoppedSuits(hand);
+  tricks-=(4-stopped)*0.28;
+
+  const pst=partnerBid.call.strain;
+  if(pst!=='NT'){
+   const fit=estimatePartnerSuitLength(partnerBid)+suitCount(hand,pst);
+   if(fit>=8)tricks-=0.75; // 有明顯花色配合卻改NT，估值下修
+  }
+ }else{
+  let fit=suitCount(hand,call.strain);
+  if(call.strain===partnerBid.call.strain)fit+=estimatePartnerSuitLength(partnerBid);
+  else fit+=2; // 隊友未表示此門，只給最低假定
+  if(fit>=8)tricks+=0.45+(fit-8)*0.42;
+  else tricks-=(8-fit)*0.32;
+  if(call.strain===partnerBid.call.strain)tricks+=0.20;
+ }
+ return Math.max(6,Math.min(13,tricks));
+}
+
+function minLegalBidForStrain(strain){
+ for(let lv=1;lv<=7;lv++){
+  const c={level:lv,strain};
+  if(isLegalBid(c))return c;
+ }
+ return null;
+}
+
+function latestPartnerBid(seat){
+ const partner=(seat+2)%4;
+ for(let i=bids.length-1;i>=0;i--){
+  const b=bids[i];
+  if(b.seat===partner&&b.call!=='Pass')return b;
+ }
+ return null;
+}
+function latestBidBySeat(seat){
+ for(let i=bids.length-1;i>=0;i--){
+  const b=bids[i];
+  if(b.seat===seat&&b.call!=='Pass')return b;
+ }
+ return null;
+}
+function estimatePartnerStrength(partnerBid){
+ const c=partnerBid.call;
+ if(c.strain==='NT'){
+  if(c.level===1)return 17;
+  if(c.level===2)return 20;
+  return 25;
+ }
+ if(c.level===1)return 12.5;
+ if(c.level===2)return 16;
+ if(c.level===3)return 19;
+ if(c.level===4)return 22;
+ return 25;
+}
+function estimatePartnerSuitLength(partnerBid){
+ const c=partnerBid.call;
+ if(c.strain==='NT')return 0;
+ if(c.level===1)return 5;
+ if(c.level===2)return 6;
+ return 6;
+}
+function hasStopper(hand,suit){
+ const cards=hand.filter(c=>c.s===suit);
+ const rs=cards.map(c=>c.r);
+ return rs.includes('A') || (rs.includes('K')&&cards.length>=2) || (rs.includes('Q')&&cards.length>=3);
+}
+function countStoppedSuits(hand){
+ return suits.filter(s=>hasStopper(hand,s)).length;
+}
+
+function shapeInfo(hand){
+ const counts={};suits.forEach(s=>counts[s]=0);
+ hand.forEach(c=>counts[c.s]++);
+ const lens=Object.values(counts).sort((a,b)=>b-a);
+ return {counts,lens};
+}
+function isBalanced(counts){
+ const lens=Object.values(counts).sort((a,b)=>b-a).join('-');
+ return ['4-3-3-3','4-4-3-2','5-3-3-2'].includes(lens);
+}
+function distributionPoints(counts){
+ let v=0;
+ Object.values(counts).forEach(n=>{if(n>=5)v+=n-4; if(n===0)v+=3; else if(n===1)v+=2; else if(n===2)v+=1;});
+ return v;
+}
+function estimateBidMinPoints(call){
+ if(call==='Pass')return 0;
+ if(call.strain==='NT'){
+  if(call.level===1)return 16;
+  if(call.level===2)return 20;
+  if(call.level>=3)return 25;
+ }
+ if(call.level===1)return 12;
+ if(call.level===2)return 16;
+ if(call.level===3)return 19;
+ return 22;
+}
+function cardFitEstimate(seat,strain){
+ const team=teamOf(seat);
+ let shown=0;
+ for(const b of bids){
+  if(b.call!=='Pass'&&teamOf(b.seat)===team&&b.call.strain===strain){
+   shown=Math.max(shown,b.call.level===1?5:6);
+  }
+ }
+ return shown;
+}
+function teamRaisedStrain(team,strain){
+ let first=null;
+ for(const b of bids){
+  if(b.call==='Pass'||teamOf(b.seat)!==team||b.call.strain!==strain)continue;
+  if(first===null){first=b.seat;continue;}
+  if(b.seat!==first)return true;
+ }
+ return false;
+}
+function estimateTargetLevel(combinedPts,support,strain){
+ if(strain==='♥'||strain==='♠'){
+  if(combinedPts>=25&&support>=4)return 4;
+  if(combinedPts>=22&&support>=4)return 3;
+  if(combinedPts>=18&&support>=3)return 2;
+  return 0;
+ }
+ if(combinedPts>=28&&support>=5)return 5;
+ if(combinedPts>=24&&support>=4)return 3;
+ if(combinedPts>=18&&support>=3)return 2;
+ return 0;
+}
+function remainingSeatsAfter(seat){
+ const arr=[];
+ let x=(seat+1)%4;
+ while(arr.length < 3-trick.length){arr.push(x);x=(x+1)%4;}
+ return arr;
+}
+function honorWastePenalty(card){
+ if(card.r==='A')return 90;
+ if(card.r==='K')return 60;
+ if(card.r==='Q')return 35;
+ if(card.r==='J')return 18;
+ return 0;
+}
+function cardPlayValue(card){return rankOrder[card.r]+suitOrder[card.s]*0.01;}
+
+
+function resetAIMemory(){
+ aiMemory={
+  seenCards:[],
+  seenSet:new Set(),
+  recentTricks:[],
+  voidSuits:[new Set(),new Set(),new Set(),new Set()],
+  trumpsPlayed:[]
+ };
+}
+function rememberPlayedCard(seat,card){
+ if(!aiMemory)resetAIMemory();
+ const leadSuit=trick.length?trick[0].card.s:null;
+ if(leadSuit&&card.s!==leadSuit){
+  aiMemory.voidSuits[seat].add(leadSuit);
+ }
+ if(!aiMemory.seenSet.has(card.id)){
+  aiMemory.seenSet.add(card.id);
+  aiMemory.seenCards.push({seat,card});
+ }
+ if(contract&&contract.strain!=='NT'&&card.s===contract.strain){
+  aiMemory.trumpsPlayed.push({seat,card});
+ }
+}
+function rememberCompletedTrick(doneTrick,winnerSeat){
+ if(!aiMemory)resetAIMemory();
+ aiMemory.recentTricks.push({plays:doneTrick.map(x=>({seat:x.seat,card:x.card})),winner:winnerSeat,leadSuit:doneTrick[0]?.card?.s});
+ if(aiMemory.recentTricks.length>3)aiMemory.recentTricks.shift();
+}
+function cardKnownPlayed(card){
+ return !!(aiMemory&&aiMemory.seenSet&&aiMemory.seenSet.has(card.id));
+}
+function higherThreatCount(card,seat){
+ let n=0;
+ const ownIds=new Set(players[seat].hand.map(c=>c.id));
+ const dummyIds=new Set((phase==='play'&&dummy!==null&&dummy!==seat)?players[dummy].hand.map(c=>c.id):[]);
+ for(const r of ranks){
+  if(rankOrder[r]<=rankOrder[card.r])continue;
+  const probe={s:card.s,r,id:r+card.s};
+  if(cardKnownPlayed(probe))continue;
+  if(ownIds.has(probe.id))continue;
+  if(dummyIds.has(probe.id))continue;
+  n++;
+ }
+ return n;
+}
+function isLikelyWinnerCard(card,seat){
+ return higherThreatCount(card,seat)===0;
+}
+function recentlyRuffedSuit(enemySeat,suit){
+ if(!aiMemory||!contract||contract.strain==='NT')return false;
+ return aiMemory.recentTricks.some(t=>
+  t.leadSuit===suit && t.plays.some(p=>p.seat===enemySeat&&p.card.s===contract.strain&&p.card.s!==suit)
+ );
+}
+function estimatedEnemyTrumps(seat){
+ if(!contract||contract.strain==='NT'||!aiMemory)return 0;
+ const trump=contract.strain;
+ const own=players[seat].hand.filter(c=>c.s===trump).length;
+ const visibleDummy=(phase==='play'&&dummy!==null&&dummy!==seat)?players[dummy].hand.filter(c=>c.s===trump).length:0;
+ return Math.max(0,13-aiMemory.trumpsPlayed.length-own-visibleDummy);
+}
+function ruffRiskForSuit(seat,suit){
+ if(!contract||contract.strain==='NT'||suit===contract.strain||estimatedEnemyTrumps(seat)<=0)return 0;
+ let risk=0;
+ for(let enemy=0;enemy<4;enemy++){
+  if(teamOf(enemy)===teamOf(seat))continue;
+  if(aiMemory&&aiMemory.voidSuits[enemy].has(suit))risk+=95;
+  if(recentlyRuffedSuit(enemy,suit))risk+=85;
+ }
+ return risk;
+}
+function currentPartnershipTrumpCount(seat){
+ if(!contract||contract.strain==='NT')return 0;
+ const trump=contract.strain;
+ let total=players[seat].hand.filter(c=>c.s===trump).length;
+ const partner=(seat+2)%4;
+ if(phase==='play'&&partner===dummy){
+  total+=players[partner].hand.filter(c=>c.s===trump).length;
+ }
+ return total;
+}
+function sideHasImmediateRuffPlan(seat){
+ if(!contract||contract.strain==='NT'||dummy===null)return false;
+ const trump=contract.strain;
+ const partner=(seat+2)%4;
+ const dummySeat=(seat===dummy||partner===dummy)?dummy:null;
+ if(dummySeat===null)return false;
+ const otherSeat=(dummySeat===seat)?partner:seat;
+ const dummyHand=players[dummySeat].hand;
+ const otherHand=players[otherSeat].hand;
+ if(dummyHand.filter(c=>c.s===trump).length<2)return false;
+ return suits.some(s=>s!==trump && dummyHand.filter(c=>c.s===s).length===0 && otherHand.filter(c=>c.s===s).length>=2);
+}
+function shouldDrawTrumpNow(seat,card){
+ if(!contract||contract.strain==='NT'||!card||card.s!==contract.strain||trick.length)return false;
+ if(teamOf(seat)!==teamOf(declarer))return false;
+ if(estimatedEnemyTrumps(seat)<=0)return false;
+ if(sideHasImmediateRuffPlan(seat))return false;
+ const partnershipTrump=currentPartnershipTrumpCount(seat);
+ const enemyRuffedRecently=aiMemory&&aiMemory.recentTricks.some(t=>t.plays.some(p=>teamOf(p.seat)!==teamOf(seat)&&p.card.s===contract.strain&&p.card.s!==t.leadSuit));
+ return partnershipTrump>=5 || enemyRuffedRecently;
+}
+function memoryLeadBonus(seat,card){
+ let score=0;
+ if(shouldDrawTrumpNow(seat,card))score+=120;
+ const risk=ruffRiskForSuit(seat,card.s);
+ if(risk>0){
+  if(isLikelyWinnerCard(card,seat)||['A','K','Q'].includes(card.r))score-=Math.round(risk*1.15);
+  else score+=Math.min(55,Math.round(risk*0.35));
+ }
+ if(isLikelyWinnerCard(card,seat))score+=55;
+ return score;
+}
+
+function finishBidding(){
+ phase='play';
+ const finalBid=currentHighestBid();
+ contract={level:finalBid.call.level,strain:finalBid.call.strain,seat:finalBid.seat};
+ declarer=findDeclarer(contract);
+ dummy=(declarer+2)%4;
+ leader=(declarer+1)%4;
+ current=leader;
+ trick=[];
+ selected=null;
+ addPlayLog(`合約成立：${contract.level}${contract.strain}，莊家方目標 ${6+contract.level} 墩。`);
+ addPlayLog(`莊家：${seats[declarer]}，夢家：${seats[dummy]}，首引：${seats[leader]}。`);
+ render();
+ if(!isSeatHumanControlled(current))setTimeout(aiPlay,800);
+}
+function findDeclarer(c){
+ for(const b of bids){
+  if(b.call!=='Pass'&&teamOf(b.seat)===teamOf(c.seat)&&b.call.strain===c.strain)return b.seat;
+ }
+ return c.seat;
+}
+function legalCards(seat){
+ const hand=players[seat].hand;
+ if(!trick.length)return hand;
+ const leadSuit=trick[0].card.s;
+ const follow=hand.filter(c=>c.s===leadSuit);
+ return follow.length?follow:hand;
+}
+function clickCard(id){
+ if(phase!=='play'||gameOver||thinking)return;
+ // 夢家的牌由莊家操作。
+ // 教學版為了可玩性：
+ // 1. 玩家南家正常回合可以出自己的牌。
+ // 2. 玩家南家是莊家時，可以操作北家夢家牌。
+ // 3. 北家是莊家、南家是夢家時，玩家可以操作自己的夢家牌，等同幫北家出牌。
+ const playableSeat=current;
+ const playerControls = isSeatHumanControlled(playableSeat);
+ if(!playerControls)return;
+ const legal=legalCards(playableSeat);
+ const c=players[playableSeat].hand.find(x=>x.id===id);
+ if(!c||!legal.some(x=>x.id===id))return;
+ selected=c;render();
+ playSelected();
+}
+function playSelected(){
+ if(!selected)return;
+ playCard(current,selected);
+ selected=null;
+}
+function showEffect(text,kind){
+ if(renderSuspended||!effectLayer)return;
+ const div=document.createElement('div');
+ div.className='effect-pop '+(kind==='trump'?'effect-trump':'effect-discard');
+ div.textContent=text;
+ effectLayer.appendChild(div);
+ setTimeout(()=>div.remove(),900);
+}
+function clearCardLabel(seat){
+ delete trickLabels[seat];
+ if(labelTimers[seat]){
+  clearTimeout(labelTimers[seat]);
+  delete labelTimers[seat];
+ }
+ render();
+}
+function setTimedLabel(seat,text,kind,ms){
+ trickLabels[seat]={text,kind};
+ if(labelTimers[seat])clearTimeout(labelTimers[seat]);
+ labelTimers[seat]=setTimeout(()=>clearCardLabel(seat),ms);
+}
+function playEffectForCard(seat,card){
+ if(!trick.length)return;
+ const leadSuit=trick[0].card.s;
+ const trump=contract.strain==='NT'?null:contract.strain;
+ if(card.s!==leadSuit){
+  if(trump&&card.s===trump){
+   setTimedLabel(seat,'王吃','trump',1600);
+   showEffect('王吃','trump');
+  }else{
+   setTimedLabel(seat,'墊牌','discard',900);
+   showEffect('墊牌','discard');
+  }
+ }
+}
+function playCard(seat,card){
+ playEffectForCard(seat,card);
+ rememberPlayedCard(seat,card);
+ players[seat].hand=players[seat].hand.filter(c=>c.id!==card.id);
+ trick.push({seat,card});
+ addPlayLog(`${seats[seat]} 出 ${card.id}`);
+ if(seat===leader)openingLeadDone=true;
+ render();
+
+ if(trick.length===4){
+  setTimeout(finishTrick,700);
+ }else{
+  current=(current+1)%4;
+  render();
+  if(!isSeatHumanControlled(current))setTimeout(aiPlay,700);
+ }
+}
+function aiPlay(){
+ if(trainingBusy)return;
+ if(phase!=='play'||gameOver)return;
+ thinking=true;render();
+ setTimeout(()=>{
+  const legal=legalCards(current);
+  if(!legal||!legal.length){thinking=false;return;}
+  const key=playContextKey(current,legal);
+  const card=chooseAiCard(current,legal);
+  const tags=classifyCardTactics(current,legal,card);
+  decisionTrace.push({type:'play',seat:current,key,action:actionOfCard(card),tags,local:localCardScoreFromTags(tags)});
+  thinking=false;
+  playCard(current,card);
+ },650);
+}
+function chooseAiCard(seat,legal){
+ const sorted=[...legal].sort((a,b)=>rankOrder[a.r]-rankOrder[b.r]);
+ const myTeam=teamOf(seat);
+
+ // 首引：長套小牌優先，避免沒有理由就首引A/K。
+ if(!trick.length){
+  const trump=contract.strain==='NT'?null:contract.strain;
+  const hand=players[seat].hand;
+  const cnt={}; suits.forEach(s=>cnt[s]=0);
+  hand.forEach(c=>cnt[c.s]++);
+  let best=null,bestScore=-9999;
+  for(const c of sorted){
+   let score=cnt[c.s]*18 - rankOrder[c.r]*2;
+   score += memoryLeadBonus(seat,c);
+   if(trump&&c.s===trump){
+    score += shouldDrawTrumpNow(seat,c)?65:-22;
+   }
+   if(c.r==='A')score-=35;
+   if(c.r==='K')score-=18;
+   if(c.r==='Q')score-=6;
+   // 有連張時，K/Q/J首引稍微合理。
+   const rs=hand.filter(x=>x.s===c.s).map(x=>x.r);
+   if(c.r==='K'&&rs.includes('Q'))score+=12;
+   if(c.r==='Q'&&rs.includes('J'))score+=10;
+   if(score>bestScore){bestScore=score;best=c;}
+  }
+  return best||sorted[0];
+ }
+
+ const beforeWinner=winnerOfTrick([...trick]);
+ const teammateWinning=beforeWinner&&teamOf(beforeWinner.seat)===myTeam;
+ const seatsAfter=remainingSeatsAfter(seat);
+ const hasOpponentAfter=seatsAfter.some(s=>teamOf(s)!==myTeam);
+ const leadSuit=trick[0].card.s;
+ const trump=contract.strain==='NT'?null:contract.strain;
+ const partnerCard=beforeWinner?beforeWinner.card:null;
+ const partnerCertain = teammateWinning && (
+   !hasOpponentAfter ||
+   (partnerCard && partnerCard.r==='A' && (!trump || partnerCard.s===trump || contract.strain==='NT') && !seatsAfter.some(s=>teamOf(s)!==myTeam&&trump&&aiMemory&&aiMemory.voidSuits[s].has(leadSuit)))
+ );
+
+ const winningCards=sorted.filter(c=>winnerOfTrick([...trick,{seat,card:c}]).seat===seat)
+   .sort((a,b)=>rankOrder[a.r]-rankOrder[b.r]);
+ const minWinner=winningCards[0];
+
+ let best=sorted[0],bestScore=-99999;
+ for(const c of sorted){
+  let score=0;
+  const afterWinner=winnerOfTrick([...trick,{seat,card:c}]);
+  const winsNow=afterWinner.seat===seat;
+
+  // 隊友已經穩贏：這是最高優先，丟最小牌、保留A/K/Q。
+  if(partnerCertain){
+   score += 240 - rankOrder[c.r]*8 - honorWastePenalty(c);
+   if(c.s!==leadSuit)score += 8; // 能墊牌時也優先丟低價牌
+  }
+  // 隊友目前贏但後面還有人：仍偏向丟小，但不要太絕對。
+  else if(teammateWinning){
+   score += 95 - rankOrder[c.r]*5 - honorWastePenalty(c)*0.55;
+  }
+  // 自己需要搶墩：用最小能贏的牌。
+  else if(winsNow){
+   score += 180;
+   if(minWinner && c.id===minWinner.id)score += 120;
+   else score -= (rankOrder[c.r]-rankOrder[minWinner.r])*26 + honorWastePenalty(c)*0.45;
+   if(trump&&c.s===trump&&trick[0].card.s!==trump)score += 35; // 成功王吃
+  }
+  // 贏不了：丟最小牌，不浪費大牌。
+  else{
+   score += 40 - rankOrder[c.r]*4 - honorWastePenalty(c)*0.65;
+  }
+
+  // 如果明明有更小牌能贏，卻壓更大的牌，明確扣分。
+  if(minWinner && winsNow && c.id!==minWinner.id){
+   score -= 45;
+   if(c.r==='A')score-=45;
+   if(c.r==='K')score-=25;
+  }
+
+  // 跟牌時不要無意義丟高牌；缺門王吃若能贏才加分，不能贏就扣。
+  if(trump&&c.s===trump&&c.s!==leadSuit){
+   if(winsNow)score+=28;
+   else score-=50;
+  }
+
+  // AI記憶加分：已知敵方缺門時，避免把旁套大牌餵給王牌；小輸張則可逼敵人交王。
+  const risk=ruffRiskForSuit(seat,c.s);
+  if(risk>0 && c.s!==leadSuit){
+   if(isLikelyWinnerCard(c,seat)||['A','K','Q'].includes(c.r))score-=Math.round(risk*1.10);
+   else if(!winsNow)score+=Math.min(50,Math.round(risk*0.28));
+  }
+  if(isLikelyWinnerCard(c,seat)&&winsNow)score+=42;
+
+  score += dbBonus(playRecordTypeForSeat(seat),playContextKey(seat,legal),actionOfCard(c),16);
+  score += tacticBonus(classifyCardTactics(seat,legal,c),9);
+  score += Math.random()*0.01;
+  if(score>bestScore){bestScore=score;best=c;}
+ }
+ return best;
+}
+function winnerOfTrick(cards){
+ const trump=contract.strain==='NT'?null:contract.strain;
+ const lead=cards[0].card.s;
+ let best=cards[0];
+ for(const play of cards.slice(1)){
+  const c=play.card,b=best.card;
+  const cTrump=trump&&c.s===trump,bTrump=trump&&b.s===trump;
+  if(cTrump&&!bTrump){best=play;continue}
+  if(cTrump&&bTrump&&rankOrder[c.r]>rankOrder[b.r]){best=play;continue}
+  if(!cTrump&&!bTrump&&c.s===lead&&b.s===lead&&rankOrder[c.r]>rankOrder[b.r]){best=play;continue}
+  if(!bTrump&&b.s!==lead&&c.s===lead){best=play;continue}
+ }
+ return best;
+}
+function finishTrick(){
+ const win=winnerOfTrick(trick);
+ tricks[teamOf(win.seat)]++;
+ const myTeam=teamOf(0);
+ const winTeam=teamOf(win.seat);
+ lastCompletedTrick=trick.map(x=>({seat:x.seat,card:x.card}));
+ lastCompletedWinner=win.seat;
+ lastTrickWinnerText=`${seats[win.seat]} 贏得此墩｜${winTeam===myTeam?'我方勝一墩':'敵方勝一墩'}`;
+ rememberCompletedTrick(trick,win.seat);
+ addPlayLog(lastTrickWinnerText);
+ trick=[];
+ Object.values(labelTimers).forEach(t=>clearTimeout(t));
+ trickLabels={};labelTimers={};
+ leader=win.seat;
+ current=leader;
+ render();
+ if(players.every(p=>p.hand.length===0)){
+  endHand();
+  return;
+ }
+ if(!isSeatHumanControlled(current))setTimeout(aiPlay,700);
+}
+function endHand(){
+ gameOver=true;
+ const declarerTeam=teamOf(declarer);
+ const got=tricks[declarerTeam];
+ const target=6+contract.level;
+ const success=got>=target;
+ winningTeam=success?declarerTeam:(declarerTeam==='NS'?'EW':'NS');
+ resultText=`${success?'🏆 合約成功，莊家方勝':'🏆 合約失敗，防守方勝'}｜${winningTeam==='NS'?'北南':'東西'}獲勝｜莊家方 ${got}/${target} 墩`;
+ addPlayLog(`13墩結束：莊家方 ${got}/${target}，合約${success?'成功':'失敗'}，${success?'莊家方勝':'防守方勝'}。`);
+ learnFromTrace(winningTeam,qualityFromResult());
+ render();
+ if(!suppressAlerts&&!trainingBusy&&!autoTraining)setTimeout(()=>alert(`牌局結束！\n合約：${contract.level}${contract.strain}\n莊家：${seats[declarer]}\n夢家：${seats[dummy]}\n目標：${target}墩\n莊家方實得：${got}墩\n結果：${success?'合約成功':'合約失敗'}\n勝利方：${winningTeam==='NS'?'北南':'東西'}`),100);
+}
+function isSeatHumanControlled(seat){
+ if(playerAutoplay)return false;
+ return seat===0 || (phase==='play'&&declarer===0&&seat===dummy);
+}
+function maybeAutoContinue(){
+ if(trainingBusy)return;
+ if(gameOver||thinking)return;
+ if(phase==='bidding'&&bidTurn===0&&playerAutoplay){setTimeout(aiBid,120);return;}
+ if(phase==='play'&&!isSeatHumanControlled(current)){setTimeout(aiPlay,120);}
+}
+
+function render(){
+ if(renderSuspended)return;
+ app.classList.toggle('phase-bidding',phase==='bidding');
+ for(let i=0;i<4;i++){
+  areaEls[i].classList.toggle('turn',i===(phase==='bidding'?bidTurn:current)&&!gameOver);
+  areaEls[i].classList.remove('win-team','lose-team');
+  if(gameOver&&winningTeam){
+   areaEls[i].classList.add(teamOf(i)===winningTeam?'win-team':'lose-team');
+  }
+  roleEls[i].textContent='';
+  if(i===declarer)roleEls[i].textContent='👑莊家';
+  if(i===dummy)roleEls[i].textContent='🎴夢家';
+  const visible = i===0 || (phase==='play'&&i===dummy);
+  if(i===0){areaEls[i].querySelector('.name').childNodes[0].nodeValue=playerAutoplay?'南 S（AI託管）':'南 S（玩家）';}
+  handEls[i].classList.toggle('dummy', phase==='play'&&i===dummy&&declarer===0&&!playerAutoplay);
+  handEls[i].innerHTML=players[i].hand.map(c=>visible?cardHtml(c,true):'<div class="card back">◆</div>').join('');
+  [...handEls[i].querySelectorAll('.card[data-id]')].forEach(el=>el.onclick=()=>clickCard(el.dataset.id));
+ }
+ const shownTrick=(gameOver&&lastCompletedTrick.length)?lastCompletedTrick:trick;
+ for(let i=0;i<4;i++){
+  const p=shownTrick.find(x=>x.seat===i);
+  if(p){
+   const label=(!gameOver&&trickLabels[i])?`<div class="trick-label ${trickLabels[i].kind==='trump'?'trump':'discard'}">${trickLabels[i].text}</div>`:'';
+   const winMark=(gameOver&&lastCompletedWinner===i)?'<div class="final-trick-note">最後一墩贏家</div>':'';
+   slotEls[i].innerHTML=`<div>${seats[i]}</div><div style="position:relative">${cardHtml(p.card).replace('card','card trick-card')}${label}</div>${winMark}`;
+  }else slotEls[i].innerHTML=seats[i];
+ }
+ renderInfo();
+}
+function renderInfo(){
+ if(phase==='bidding'){
+  statusMain.textContent=thinking?'AI 叫牌中...':`${seats[bidTurn]} 叫牌`;
+  const high=currentHighestBid();
+  statusDetail.textContent=high?`目前最高：${high.call.level}${high.call.strain}（${seats[high.seat]}）`:'尚無合約';
+  contractText.textContent=high?`目前最高：${high.call.level}${high.call.strain}`:'目前最高：尚無';
+  targetText.textContent=high?`若成立：${6+high.call.level}墩`:'等待首個叫牌';
+  declarerText.textContent='叫牌結束後決定';
+  leadText.textContent='尚未決定';
+
+ }else{
+  statusMain.textContent=gameOver?'牌局結束':thinking?'AI 思考中...':`${seats[current]} 出牌${isSeatHumanControlled(current)&&current===dummy?'（你是夢家，請幫莊家出牌）':''}${playerAutoplay&&!gameOver?'（AI託管中）':''}`;
+  statusDetail.textContent=`有同花必跟；${contract.strain==='NT'?'無王':contract.strain+' 是王牌'}。`;
+  contractText.textContent=`${contract.level}${contract.strain}`;
+  targetText.textContent=`莊家方 ${6+contract.level} 墩`;
+  declarerText.textContent=`${seats[declarer]} / ${seats[dummy]}`;
+  leadText.textContent=`${seats[leader]} / ${contract.strain==='NT'?'無王':contract.strain}`;
+ }
+ const targetNow=contract?6+contract.level:null;
+ nsTricks.textContent=tricks.NS+(contract&&teamOf(declarer)==='NS'?` / ${targetNow}`:'');
+ ewTricks.textContent=tricks.EW+(contract&&teamOf(declarer)==='EW'?` / ${targetNow}`:'');
+ nsTricks.parentElement.classList.remove('score-ok','score-bad');
+ ewTricks.parentElement.classList.remove('score-ok','score-bad');
+ if(contract){
+  const dTeam=teamOf(declarer);
+  const el=dTeam==='NS'?nsTricks.parentElement:ewTricks.parentElement;
+  el.classList.add(tricks[dTeam]>=targetNow?'score-ok':'score-bad');
+ }
+ trickWinnerBox.innerHTML=lastTrickWinnerText?`<div class="trick-winner">${lastTrickWinnerText}</div>`:'';
+ if(resultText){
+  const ok=resultText.includes('成功');
+  resultBox.innerHTML=`<div class="victory-banner ${ok?'success':'fail'}">${resultText}</div>`;
+ }else resultBox.innerHTML='';
+ bidLog.innerHTML=renderAuctionTable();
+ updateBidButtons();
+}
+function addPlayLog(s){if(renderSuspended||!playLog)return;playLog.innerHTML=`<div>${s}</div>`+playLog.innerHTML}
+
+function runTrainingBatch(n=4){
+ if(trainingBusy||autoTraining)return;
+ setTrainingButtons(true);
+ updateAutoTrainingStatus(`四局訓練中：0 / ${n}`);
+ const oldLearning=learningEnabled, oldSuppress=suppressAlerts, oldRender=renderSuspended, oldDefer=deferDBSave;
+ learningEnabled=true; suppressAlerts=true; renderSuspended=true; deferDBSave=true;
+ let results=[];
+ try{
+  for(let i=0;i<n;i++){
+   const r=simulateHiddenTrainingGame();
+   results.push(r||{winningTeam:'NS',error:true});
+   updateAutoTrainingStatus(`四局訓練中：${i+1} / ${n}`);
+  }
+ }catch(err){
+  console.error('四局訓練錯誤',err);
+  updateAutoTrainingStatus('四局訓練發生錯誤，已自動恢復。');
+ }finally{
+  deferDBSave=oldDefer;
+  try{saveAIDB();}catch(e){console.error('資料庫儲存錯誤',e);}
+  renderSuspended=oldRender; suppressAlerts=oldSuppress; learningEnabled=oldLearning; setTrainingButtons(false); render();
+ }
+ const ns=results.filter(r=>r&&r.winningTeam==='NS').length, ew=results.length-ns;
+ addPlayLog(`AI訓練完成：本次${results.length}局，北南勝${ns}、東西勝${ew}。三局採隱藏局邏輯，不公開未揭露手牌。`);
+ const cAfter=dbTypeCounts(); const total=cAfter.total;
+ updateAutoTrainingStatus(`四局訓練完成：${results.length}局｜北南${ns}｜東西${ew}｜資料庫${total}/1000｜NNUE ${aiDB.nnue&&aiDB.nnue.trained?aiDB.nnue.trained:0}步`);
+ const last=(aiDB.reflections&&aiDB.reflections.length)?aiDB.reflections[aiDB.reflections.length-1]:null;
+ alert(`AI訓練完成：${results.length}局\n北南勝：${ns}\n東西勝：${ew}\n精華資料：${total}/1000\nNNUE步數：${aiDB.nnue&&aiDB.nnue.trained?aiDB.nnue.trained:0}\n${last?'最近反思：強項='+last.good+'；待修正='+last.bad+'\n':''}資料庫已更新。`);
+ updateAIDBStats();
+}
+
+function setTrainingButtons(disabled){
+ trainingBusy=disabled;
+ [train4Btn,hostSouthBtn,autoTrainBtn].filter(Boolean).forEach(b=>b.disabled=disabled);
+ if(stopAutoTrainBtn)stopAutoTrainBtn.disabled=!autoTraining;
+}
+
+function startAutoTraining(){
+ if(autoTraining)return;
+ autoTraining=true;
+ autoTrainingStop=false;
+ autoTrainingRounds=0;
+ autoTrainingGames=0;
+ autoTrainingWins={NS:0,EW:0};
+ const oldLearning=learningEnabled, oldSuppress=suppressAlerts, oldRender=renderSuspended;
+ learningEnabled=true;
+ suppressAlerts=true;
+ renderSuspended=true;
+ setTrainingButtons(true);
+ updateAutoTrainingStatus('連續訓練啟動中...');
+ const step=()=>{
+  if(autoTrainingStop){
+   autoTraining=false;
+   renderSuspended=oldRender;
+   suppressAlerts=oldSuppress;
+   learningEnabled=oldLearning;
+   setTrainingButtons(false);
+   saveAIDB();
+   updateAIDBStats();
+   render();
+   addPlayLog(`連續訓練已停止：共${autoTrainingGames}局，北南勝${autoTrainingWins.NS}、東西勝${autoTrainingWins.EW}。`);
+   const c=dbTypeCounts();
+   updateAutoTrainingStatus(`已停止：${autoTrainingGames}局｜北南${autoTrainingWins.NS}｜東西${autoTrainingWins.EW}｜主庫${c.total}/1000｜神級${c.elite}/100`);
+   return;
+  }
+  let results=[];
+  deferDBSave=true;
+  try{
+   for(let i=0;i<4;i++){
+    const r=simulateHiddenTrainingGame();
+    results.push(r);
+    autoTrainingGames++;
+    if(r&&r.winningTeam==='EW')autoTrainingWins.EW++; else autoTrainingWins.NS++;
+   }
+  }catch(err){
+   console.error('連續訓練中斷',err);
+   autoTrainingStop=true;
+  }finally{
+   deferDBSave=false;
+   saveAIDB();
+  }
+  autoTrainingRounds++;
+  updateAutoTrainingStatus();
+  setTimeout(step,500);
+ };
+ setTimeout(step,500);
+}
+function stopAutoTraining(){
+ if(!autoTraining)return;
+ autoTrainingStop=true;
+ updateAutoTrainingStatus('停止中...會在本輪四局結束後停下。');
+}
+function updateAutoTrainingStatus(customText){
+ if(!autoTrainStatus)return;
+ if(customText){autoTrainStatus.textContent=customText;return;}
+ const c=dbTypeCounts();
+ const winRate=autoTrainingGames?((autoTrainingWins.NS/autoTrainingGames)*100).toFixed(1):'0.0';
+ autoTrainStatus.textContent=`連續訓練中：第${autoTrainingRounds}輪｜共${autoTrainingGames}局｜北南${autoTrainingWins.NS}｜東西${autoTrainingWins.EW}｜NS勝率${winRate}%｜主庫${c.total}/1000｜神級${c.elite}/100｜NNUE ${aiDB.nnue&&aiDB.nnue.trained?aiDB.nnue.trained:0}步`;
+ if(aiDbStats)updateAIDBStats();
+}
+
+function simulateHiddenTrainingGame(){
+ const backup={players,phase,dealer,bidTurn,bids,contract,declarer,dummy,leader,current,trick,tricks,selected,gameOver,thinking,openingLeadDone,resultText,trickLabels,labelTimers,lastTrickWinnerText,lastPlayerBidPromptKey,decisionTrace,aiMemory,winningTeam,lastCompletedTrick,lastCompletedWinner};
+ let out={winningTeam:'NS',error:true};
+ try{
+  const deck=makeDeck();
+  players=[0,1,2,3].map(i=>({hand:deck.slice(i*13,i*13+13).sort(cmp)}));
+  phase='bidding'; dealer=0; bidTurn=0; bids=[]; contract=null; declarer=null; dummy=null; leader=null; current=0; trick=[]; tricks={NS:0,EW:0}; gameOver=false; thinking=false; decisionTrace=[]; resetAIMemory();
+  let guard=0;
+  while(phase==='bidding' && guard++<120){
+   const call=chooseAiBid(bidTurn);
+   decisionTrace.push({type:'bid',seat:bidTurn,key:bidContextKey(bidTurn),action:bidLabel(call),tags:classifyBidTactics(bidTurn,call)});
+   bids.push({seat:bidTurn,call});
+   if(call!=='Pass')contract={...call,seat:bidTurn};
+   if(isPassedOut()){
+    const winner=Math.random()<0.5?'NS':'EW';
+    learnFromTrace(winner,0.45);
+    out={winningTeam:winner,passedOut:true};
+    return out;
+   }
+   if(shouldEndBidding()){
+    phase='play';
+    const finalBid=currentHighestBid();
+    if(!finalBid)throw new Error('no final bid');
+    contract={level:finalBid.call.level,strain:finalBid.call.strain,seat:finalBid.seat};
+    declarer=findDeclarer(contract); dummy=(declarer+2)%4; leader=(declarer+1)%4; current=leader; trick=[]; break;
+   }
+   bidTurn=(bidTurn+1)%4;
+  }
+  if(!contract||phase!=='play'){
+   const winner=Math.random()<0.5?'NS':'EW';
+   learnFromTrace(winner,0.35);
+   out={winningTeam:winner,error:true,stage:'bidding'};
+   return out;
+  }
+  let playGuard=0;
+  while(phase==='play' && !gameOver && playGuard++<120){
+   if(players.every(p=>p.hand.length===0))break;
+   if(current==null||current<0||current>3)throw new Error('bad current seat '+current);
+   const legal=legalCards(current);
+   if(!legal||!legal.length){
+    // 這是保險：若某家已無牌，直接結算，不讓訓練卡死。
+    break;
+   }
+   const key=playContextKey(current,legal);
+   const card=chooseAiCard(current,legal);
+   if(!card)throw new Error('AI did not choose card');
+   const tags=classifyCardTactics(current,legal,card);
+   decisionTrace.push({type:'play',seat:current,key,action:actionOfCard(card),tags,local:localCardScoreFromTags(tags)});
+   rememberPlayedCard(current,card);
+   players[current].hand=players[current].hand.filter(c=>c.id!==card.id);
+   trick.push({seat:current,card});
+   if(trick.length===4){
+    const win=winnerOfTrick(trick);
+    tricks[teamOf(win.seat)]++; rememberCompletedTrick(trick,win.seat);
+    trick=[]; leader=win.seat; current=leader;
+    if(players.every(p=>p.hand.length===0))break;
+   }else current=(current+1)%4;
+  }
+  const dTeam=teamOf(declarer), got=tricks[dTeam], target=6+contract.level;
+  const success=got>=target; const w=success?dTeam:(dTeam==='NS'?'EW':'NS');
+  winningTeam=w; learnFromTrace(w,qualityFromResult());
+  out={winningTeam:w,contract:contract.level+contract.strain,got,target,error:playGuard>=120};
+  return out;
+ }catch(err){
+  console.error('隱藏訓練局錯誤',err);
+  try{learnFromTrace(out.winningTeam||'NS',0.25);}catch(e){}
+  return out;
+ }finally{
+  restoreTrainingBackup(backup);
+ }
+}
+
+function restoreTrainingBackup(b){
+ players=b.players;phase=b.phase;dealer=b.dealer;bidTurn=b.bidTurn;bids=b.bids;contract=b.contract;declarer=b.declarer;dummy=b.dummy;leader=b.leader;current=b.current;trick=b.trick;tricks=b.tricks;selected=b.selected;gameOver=b.gameOver;thinking=b.thinking;openingLeadDone=b.openingLeadDone;resultText=b.resultText;trickLabels=b.trickLabels;labelTimers=b.labelTimers;lastTrickWinnerText=b.lastTrickWinnerText;lastPlayerBidPromptKey=b.lastPlayerBidPromptKey;decisionTrace=b.decisionTrace;aiMemory=b.aiMemory;winningTeam=b.winningTeam;lastCompletedTrick=b.lastCompletedTrick;lastCompletedWinner=b.lastCompletedWinner;
+ if(!renderSuspended)render();
+}
+bootAIDBFromIndexedDB().then(()=>{updateAIDBStats();init();});
+})();
+</script>
+</body>
+</html>
